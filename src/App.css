@@ -1,0 +1,46 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+
+.App-header {
+  background-color: #222;
+  height: 80px;
+  padding: 20px;
+  color: white;
+}
+
+.App-title {
+  font-size: 1.5em;
+}
+
+div.rightPanel {
+  float: right;
+  width: 30%;
+}
+
+.chordDiagram {
+  display: inline-block;
+  vertical-align: top;
+}
+
+.chordDiagram img {
+  display: block;
+  width: 150px;
+}
+
+.chordDiagram p {
+  font-size: 0.85em;
+  text-align: center;
+  margin-top: 0px;
+  width: 150px;
+}
+
+@keyframes App-logo-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
