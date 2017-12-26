@@ -9,9 +9,20 @@ class Editor extends Component {
 
   render () {
     return (
-      <AceEditor mode='songcheat' theme='chrome' onChange={(value) => this.props.onChange(value)} name='source' width={this.props.width} maxLines={50} fontSize={18} value={this.props.text} editorProps={{
-        $blockScrolling: true
-      }} />
+      <AceEditor
+        name='source'
+        mode='songcheat'
+        theme='chrome'
+        width={this.props.width}
+        value={this.props.text}
+        maxLines={50}
+        fontSize={14}
+        onCursorChange={this.props.onCursorChange ? (value) => this.props.onCursorChange(value) : null}
+        onSelectionChange={this.props.onSelectionChange ? (value) => this.props.onSelectionChange(value) : null}
+        onChange={(value) => this.props.onChange(value)}
+        editorProps={{
+          $blockScrolling: true
+        }} />
     )
   }
 }

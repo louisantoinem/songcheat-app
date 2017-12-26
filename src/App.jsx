@@ -2,47 +2,124 @@ import React, {Component} from 'react'
 
 import './App.css'
 
-// components
+// child components
 import Editor from './Editor'
 import Chords from './Chords'
+import Rhythm from './Rhythm'
+import Sheet from './Sheet'
 
 // business modules
-import {Parser} from 'songcheat-core'
+import {Parser, ParserException, Compiler, CompilerException} from 'songcheat-core'
 import samples from 'songcheat-samples'
-
-let sampleIndex = 1 // Math.floor(Math.random() * samples.length)
-let sampleText = samples[sampleIndex].source
 
 class App extends Component {
 
   constructor (props) {
     super(props)
     this.parser = new Parser()
+    this.compiler = new Compiler(null, 0)
     this.state = {
-      songcheat: this.parser.parse(sampleText)
+      source: null,
+      songcheat: null,
+      showChordIndex: null,
+      showRhythmIndex: null,
+      showPartIndex: null,
+      showUnitIndex: null
     }
   }
 
-  parse (source) {
+  componentWillMount () {
+    // not done in constructor because we cannot call setState in constructor
+    // let sampleIndex = 1
+    let sampleIndex = Math.floor(Math.random() * samples.length)
+    this.songcheat(samples[sampleIndex].source)
+  }
+
+  songcheat (source) {
     try {
-      this.setState({ songcheat: this.parser.parse(source) })
-    } catch (e) { console.warn(e) }
+      // parse and compile songcheat source
+      let songcheat = this.parser.parse(source)
+      this.compiler.set(songcheat)
+      songcheat = this.compiler.scc
+      songcheat.barsPerLine = 2
+
+      // parse lyrics and show warnings if any
+      for (let unit of songcheat.structure) {
+        let warnings = this.compiler.parseLyrics(unit)
+        if (warnings.length > 0) {
+          console.warn(warnings)
+        }
+      }
+
+      this.setState({source: source, songcheat: songcheat, error: null})
+    } catch (e) {
+      this.setState({source: source, songcheat: null, error: e.toString()})
+      if (!(e instanceof ParserException) && !(e instanceof CompilerException)) {
+        console.error(e)
+      }
+    }
+  }
+
+  onCursorChange (selection) {
+    try {
+      let cursor = selection.getCursor()
+      let k = this.parser.getPrecedingKeyword(this.state.source, cursor.row + 1)
+      if (k) {
+        console.info('First keyword before cursor: ' + k.keyword)
+
+        if (this.state.showChordIndex !== k.chordIndex || this.state.showRhythmIndex !== k.rhythmIndex || this.state.showPartIndex !== k.partIndex || this.state.showUnitIndex !== k.unitIndex) {
+          this.setState({showChordIndex: k.chordIndex, showRhythmIndex: k.rhythmIndex, showPartIndex: k.partIndex, showUnitIndex: k.unitIndex})
+        }
+      }
+    } catch (e) {
+      if (!(e instanceof ParserException) && !(e instanceof CompilerException)) {
+        console.error(e)
+      }
+    }
   }
 
   render () {
+    let panel = null
+    if (this.state.error) {
+      panel = <div className='error'>{this.state.error}</div>
+    } else if (this.state.songcheat) {
+      if (this.state.showChordIndex !== null) {
+        // always show all chords, not just the selected ones
+        panel = <Chords chords={this.state.songcheat.chords/* .slice(this.state.showChordIndex, this.state.showChordIndex + 1) */} />
+      } else if (this.state.showRhythmIndex !== null) {
+        // always show all rhythms, not just the selected ones
+        panel = <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat.rhythms/* .slice(this.state.showRhythmIndex, this.state.showRhythmIndex + 1) */} />
+      } else if (this.state.showPartIndex !== null) {
+        // create a dummy unit with no lyrics for each selected part
+        let units = []
+        for (let part of this.state.songcheat.parts.slice(this.state.showPartIndex, this.state.showPartIndex + 1)) {
+          units.push({part: part})
+        }
+        panel = <Sheet compiler={this.compiler} songcheat={this.state.songcheat} units={units} />
+      } else if (this.state.showUnitIndex !== null) {
+        // show selected units
+        panel = <Sheet compiler={this.compiler} songcheat={this.state.songcheat} units={this.state.songcheat.structure.slice(this.state.showUnitIndex, this.state.showUnitIndex + 1)} />
+      } else {
+        // show general song metadata
+        // TODO
+      }
+    } else {
+      panel = <div className='error'>No songcheat ?!</div>
+    }
+
     return (<div className='App'>
 
-      <header className='App-header'>
+      {/* <header className='App-header'>
         <h1 className='App-title'>Welcome to SongCheat ♬</h1>
-      </header>
+      </header> */}
 
       <div>
 
         <div className='rightPanel'>
-          <Chords chords={this.state.songcheat.chords} />
+          {panel}
         </div>
 
-        <Editor width='70%' text={this.state.songcheat.source} onChange={source => this.parse(source)} />,
+        <Editor width='60%' text={this.state.source} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
 
       </div>
 
