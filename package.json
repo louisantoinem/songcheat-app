@@ -9,7 +9,7 @@
     "react-scripts": "1.0.17",
     "vextab": "^2.0.13",
     "songcheat-core": "file:../songcheat-core",
-    "songcheat-samples": "file:../songcheat-samples"
+    "songcheat-demos": "file:../songcheat-demos"
   },
   "scripts": {
     "start": "react-scripts start",

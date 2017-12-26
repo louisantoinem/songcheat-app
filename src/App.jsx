@@ -10,7 +10,7 @@ import Sheet from './Sheet'
 
 // business modules
 import {Utils, Parser, ParserException, Compiler, CompilerException} from 'songcheat-core'
-import samples from 'songcheat-samples'
+import samples from 'songcheat-demos/dist/samples.json'
 
 class App extends Component {
 
