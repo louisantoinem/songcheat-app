@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {ChordPix} from 'songcheat-chordpix'
+import {ChordPix} from 'songcheat-core'
 
 class Chords extends Component {
 

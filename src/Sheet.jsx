@@ -1,8 +1,7 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils} from 'songcheat-core'
-import {VexTab as SongcheatVexTab} from 'songcheat-vextab'
+import {Utils, VexTab as SongcheatVexTab} from 'songcheat-core'
 
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
