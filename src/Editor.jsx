@@ -15,13 +15,14 @@ class Editor extends Component {
         theme='chrome'
         width={this.props.width}
         value={this.props.text}
-        maxLines={50}
+        maxLines={Infinity}
         fontSize={14}
+        wrapEnabled
         onCursorChange={this.props.onCursorChange ? (value) => this.props.onCursorChange(value) : null}
         onSelectionChange={this.props.onSelectionChange ? (value) => this.props.onSelectionChange(value) : null}
         onChange={(value) => this.props.onChange(value)}
         editorProps={{
-          $blockScrolling: true
+          $blockScrolling: Infinity
         }} />
     )
   }

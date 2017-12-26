@@ -9,7 +9,7 @@ import Rhythm from './Rhythm'
 import Sheet from './Sheet'
 
 // business modules
-import {Parser, ParserException, Compiler, CompilerException} from 'songcheat-core'
+import {Utils, Parser, ParserException, Compiler, CompilerException} from 'songcheat-core'
 import samples from 'songcheat-samples'
 
 class App extends Component {
@@ -38,6 +38,7 @@ class App extends Component {
   songcheat (source) {
     try {
       // parse and compile songcheat source
+      source = Utils.replaceComposedChars(source)
       let songcheat = this.parser.parse(source)
       this.compiler.set(songcheat)
       songcheat = this.compiler.scc
