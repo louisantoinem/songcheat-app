@@ -1,4 +1,4 @@
-import React, {Component} from 'react'
+import React, { Component } from 'react'
 
 import './App.css'
 
@@ -7,10 +7,11 @@ import Editor from './Editor'
 import Chords from './Chords'
 import Rhythm from './Rhythm'
 import Sheet from './Sheet'
+import Dropzone from 'react-dropzone'
 
 // business modules
-import {Utils, Parser, ParserException, Compiler, CompilerException} from 'songcheat-core'
-import samples from 'songcheat-demos/dist/samples.json'
+import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
+import template from 'songcheat-core/dist/template.json'
 
 class App extends Component {
 
@@ -28,11 +29,20 @@ class App extends Component {
     }
   }
 
+  onDrop (acceptedFiles, rejectedFiles) {
+    let self = this
+    acceptedFiles.forEach(file => {
+      const reader = new FileReader()
+      reader.onload = () => { self.songcheat(reader.result) }
+      reader.onabort = () => console.log('file reading was aborted')
+      reader.onerror = () => console.log('file reading has failed')
+      reader.readAsText(file)
+    })
+  }
+
   componentWillMount () {
-    // not done in constructor because we cannot call setState in constructor
-    let sampleIndex = Math.floor(Math.random() * samples.length)
-    // sampleIndex = 0
-    this.songcheat(samples[sampleIndex].source)
+    // initialize on SongCheat template provided by songcheat-core
+    this.songcheat(template)
   }
 
   songcheat (source) {
@@ -110,6 +120,17 @@ class App extends Component {
         </div>
 
         <Editor width='60%' text={this.state.source} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
+
+        {/* drop zone cannot be over the editor since it would prevent clicking in the editor (drop zone needs pointer events to detect drag) */}
+        {/* it also prevents scrolling the right panel, so give it only 10% width */}
+        <Dropzone
+          style={{ position: 'fixed', right: '0px', bottom: '0px', width: '10%', height: '100%', opacity: '0.2', zIndex: 1 /* >= right panel */ }}
+          acceptStyle={{ backgroundColor: 'green', width: '100%' }}
+          rejectStyle={{ backgroundColor: 'red', width: '100%' }}
+          disableClick
+          multiple={false}
+          accept='text/plain'
+          onDrop={this.onDrop.bind(this)} />
 
       </div>
 

@@ -7,9 +7,14 @@ import 'brace/theme/chrome'
 
 class Editor extends Component {
 
+  componentDidMount () {
+    this.refs.ace_editor.editor.focus()
+  }
+
   render () {
     return (
       <AceEditor
+        ref='ace_editor'
         name='source'
         mode='songcheat'
         theme='chrome'
