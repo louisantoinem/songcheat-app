@@ -86,7 +86,7 @@ class App extends Component {
       return <div className='error'>No songcheat ?!</div>
     }
 
-    document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
+    if (this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
 
     if (this.state.showChordIndex !== null) {
       // always show all chords, not just the selected ones
