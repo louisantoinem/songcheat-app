@@ -78,35 +78,50 @@ class App extends Component {
     }
   }
 
-  render () {
-    let panel = null
+  getPanel () {
     if (this.state.error) {
-      panel = <div className='error'>{this.state.error}</div>
-    } else if (this.state.songcheat) {
-      if (this.state.showChordIndex !== null) {
-        // always show all chords, not just the selected ones
-        panel = <Chords chords={this.state.songcheat.chords/* .slice(this.state.showChordIndex, this.state.showChordIndex + 1) */} />
-      } else if (this.state.showRhythmIndex !== null) {
-        // always show all rhythms, not just the selected ones
-        panel = <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat.rhythms/* .slice(this.state.showRhythmIndex, this.state.showRhythmIndex + 1) */} />
-      } else if (this.state.showPartIndex !== null) {
-        // create a dummy unit with no lyrics for each selected part
-        let units = []
-        for (let part of this.state.songcheat.parts.slice(this.state.showPartIndex, this.state.showPartIndex + 1)) {
-          units.push({part: part})
-        }
-        panel = <Sheet songcheat={this.state.songcheat} units={units} />
-      } else if (this.state.showUnitIndex !== null) {
-        // show selected units
-        panel = <Sheet songcheat={this.state.songcheat} units={this.state.songcheat.structure.slice(this.state.showUnitIndex, this.state.showUnitIndex + 1)} />
-      } else {
-        // show general song metadata
-        // TODO
-      }
-    } else {
-      panel = <div className='error'>No songcheat ?!</div>
+      return <div className='error'>{this.state.error}</div>
+    }
+    if (!this.state.songcheat) {
+      return <div className='error'>No songcheat ?!</div>
     }
 
+    document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
+
+    if (this.state.showChordIndex !== null) {
+      // always show all chords, not just the selected ones
+      return <Chords chords={this.state.songcheat.chords/* .slice(this.state.showChordIndex, this.state.showChordIndex + 1) */} />
+    }
+    if (this.state.showRhythmIndex !== null) {
+      // always show all rhythms, not just the selected ones
+      return <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat.rhythms/* .slice(this.state.showRhythmIndex, this.state.showRhythmIndex + 1) */} />
+    }
+    if (this.state.showPartIndex !== null) {
+      // create a dummy unit with no lyrics for each selected part
+      let units = []
+      for (let part of this.state.songcheat.parts.slice(this.state.showPartIndex, this.state.showPartIndex + 1)) units.push({part: part})
+      return <Sheet songcheat={this.state.songcheat} units={units} />
+    }
+    if (this.state.showUnitIndex !== null) {
+      // show selected units
+      return <Sheet songcheat={this.state.songcheat} units={this.state.songcheat.structure.slice(this.state.showUnitIndex, this.state.showUnitIndex + 1)} />
+    }
+
+    // show general song metadata
+    return <div>
+
+      <h1>{this.state.songcheat.title}</h1>
+      <h2>{this.state.songcheat.artist}, {this.state.songcheat.year}</h2>
+      <h3>{this.state.songcheat.signature.tempo} bpm</h3>
+      <p style={{whiteSpace: 'pre-wrap', width: '100%'}}>{this.state.songcheat.comment}</p>
+      <h3>Capo: {this.state.songcheat.capo > 0 ? this.state.songcheat.capo : 'n/a'}</h3>
+      <h3>Tuning: {this.state.songcheat.tuning}</h3>
+      {/* TODO: Show: difficulty, video, tutorial, key, time, shuffle (svg) */}
+
+    </div>
+  }
+
+  render () {
     return (<div className='App'>
 
       {/* <header className='App-header'>
@@ -116,7 +131,7 @@ class App extends Component {
       <div>
 
         <div className='rightPanel'>
-          {panel}
+          {this.getPanel()}
         </div>
 
         <Editor width='60%' text={this.state.source} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
