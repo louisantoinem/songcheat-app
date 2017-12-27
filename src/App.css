@@ -28,11 +28,14 @@ div.rightPanel {
   position: fixed;
   right: 10px;
   top: 10px;
-  width: 40%;
-  z-index: 1; /* in case ACE editor and right panel overlap, ACE editor white background must not hide right panel contents */ 
+  width: 38%;
+  z-index: 1; /* in case ACE editor and right panel overlap, ACE editor white background must not hide right panel contents */
   max-height: 100%;
   overflow: auto;
   opacity: 0.8;
+  padding: 10px;
+  border: 1px solid #BFBFBF;
+  box-shadow: 10px 10px 5px #aaaaaa;
 }
 
 .chordDiagram {
@@ -55,6 +58,7 @@ div.rightPanel {
 .lyrics {
   white-space: pre;
   line-height: 150%;
+  padding: 10px;
   font-family: 'Cousine', 'Roboto Mono', 'Monaco', monospace;
   font-size: 1em;
   overflow: auto;

@@ -30,8 +30,8 @@ class App extends Component {
 
   componentWillMount () {
     // not done in constructor because we cannot call setState in constructor
-    // let sampleIndex = 1
     let sampleIndex = Math.floor(Math.random() * samples.length)
+    // sampleIndex = 0
     this.songcheat(samples[sampleIndex].source)
   }
 
