@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, VexTab as SongcheatVexTab} from 'songcheat-core'
+import {Utils, VexTab as SongcheatVexTab, Lyrics, LyricsException} from 'songcheat-core'
 
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
@@ -14,15 +14,16 @@ let Renderer = window.Vex.Flow.Renderer
 
 class Sheet extends Component {
 
-  constructor (props) {
+  constructor(props) {
     super(props)
+    this.lyrics = new Lyrics(this.props.songcheat, 0)
     this.state = {
       errors: [],
       warnings: []
     }
   }
 
-  vextab () {
+  vextab() {
     let errors = []
     let warnings = []
 
@@ -42,38 +43,76 @@ class Sheet extends Component {
 
         console.info('Score done!')
       } catch (e) {
-        console.error(e)
+        if (!(e instanceof LyricsException)) {
+          console.error(e)
+        }
         errors.push(e.message)
       }
     }
 
-    this.setState({errors: errors, warnings: warnings})
-  }
-
-  componentDidMount () {
-    this.vextab()
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
-      this.vextab()
-    } else {
-      console.info('Not vextabbing since nothing changed')
+    // update state if any new error or warning during vextabbing
+    if (errors.length > 0 || warnings.length > 0) {
+      this.setState({
+        errors: Array.prototype.concat(this.state.errors, errors),
+        warnings: Array.prototype.concat(this.state.warnings, warnings)
+      })
     }
   }
 
-  render () {
+  parseLyrics(units) {
+    let errors = []
+    let warnings = []
+    let texts = []
+
+    for (let unit of units) {
+      // parse lyrics and show warnings if any
+      if (unit.id) {
+        warnings = Array.prototype.concat(warnings, this.lyrics.parseLyrics(unit))
+      }
+
+      // get lyrics text
+      texts.push(
+        unit.id
+        ? this.lyrics.getUnitText(unit, 0, 0, 'rhythm', true)
+        : this.lyrics.getPartText(unit.part, 0, 2, 'rhythm', true))
+    }
+
+    this.setState({errors: errors, warnings: warnings, texts: texts})
+  }
+
+  componentWillMount() {
+    this.parseLyrics(this.props.units)
+  }
+
+  componentDidMount() {
+    this.vextab()
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.songcheat !== this.props.songcheat) {
+      this.lyrics = new Lyrics(nextProps.songcheat, 0)
+    }
+    if (nextProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(nextProps.units, this.props.units)) {
+      this.parseLyrics(nextProps.units)
+    }
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
+      this.vextab()
+    } else {
+      console.log('Not vextabbing since nothing changed')
+    }
+  }
+
+  render() {
     return (<div>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
       {
         this.props.units.map((unit, index) => <div key={unit.id || index}>
-          <div className='lyrics'>{
-               unit.groups
-                ? this.props.compiler.getUnitText(unit, 0, 0, 'rhythm', true)
-                : this.props.compiler.getPartText(unit.part, 0, 2, 'rhythm', true)
-            }</div>
-          <canvas key={unit.id} id={'canvas.' + unit.id} />
+          <div className='lyrics'>{this.state.texts[index]}</div>
+          <canvas key={unit.id} id={'canvas.' + unit.id}/>
         </div>)
       }
     </div>)

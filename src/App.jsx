@@ -17,7 +17,7 @@ class App extends Component {
   constructor (props) {
     super(props)
     this.parser = new Parser()
-    this.compiler = new Compiler(null, 0)
+    this.compiler = new Compiler(0)
     this.state = {
       source: null,
       songcheat: null,
@@ -40,18 +40,8 @@ class App extends Component {
       // parse and compile songcheat source
       source = Utils.replaceComposedChars(source)
       let songcheat = this.parser.parse(source)
-      this.compiler.set(songcheat)
-      songcheat = this.compiler.scc
+      songcheat = this.compiler.compile(songcheat)
       songcheat.barsPerLine = 2
-
-      // parse lyrics and show warnings if any
-      for (let unit of songcheat.structure) {
-        let warnings = this.compiler.parseLyrics(unit)
-        if (warnings.length > 0) {
-          console.warn(warnings)
-        }
-      }
-
       this.setState({source: source, songcheat: songcheat, error: null})
     } catch (e) {
       this.setState({source: source, songcheat: null, error: e.toString()})
@@ -67,7 +57,6 @@ class App extends Component {
       let k = this.parser.getPrecedingKeyword(this.state.source, cursor.row + 1)
       if (k) {
         console.info('First keyword before cursor: ' + k.keyword)
-
         if (this.state.showChordIndex !== k.chordIndex || this.state.showRhythmIndex !== k.rhythmIndex || this.state.showPartIndex !== k.partIndex || this.state.showUnitIndex !== k.unitIndex) {
           this.setState({showChordIndex: k.chordIndex, showRhythmIndex: k.rhythmIndex, showPartIndex: k.partIndex, showUnitIndex: k.unitIndex})
         }
@@ -96,10 +85,10 @@ class App extends Component {
         for (let part of this.state.songcheat.parts.slice(this.state.showPartIndex, this.state.showPartIndex + 1)) {
           units.push({part: part})
         }
-        panel = <Sheet compiler={this.compiler} songcheat={this.state.songcheat} units={units} />
+        panel = <Sheet songcheat={this.state.songcheat} units={units} />
       } else if (this.state.showUnitIndex !== null) {
         // show selected units
-        panel = <Sheet compiler={this.compiler} songcheat={this.state.songcheat} units={this.state.songcheat.structure.slice(this.state.showUnitIndex, this.state.showUnitIndex + 1)} />
+        panel = <Sheet songcheat={this.state.songcheat} units={this.state.songcheat.structure.slice(this.state.showUnitIndex, this.state.showUnitIndex + 1)} />
       } else {
         // show general song metadata
         // TODO
