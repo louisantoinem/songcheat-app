@@ -12,6 +12,7 @@ class Chords extends Component {
     return (
       <div>
         {this.props.chords.map(chord =>
+          chord.inline ? '' :
           <div className='chordDiagram' key={chord.id}>
             <img alt={chord.tablature} title={chord.comment} src={this.chordUrl(chord)} />
             <p>{chord.comment}</p>

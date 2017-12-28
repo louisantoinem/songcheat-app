@@ -14,7 +14,7 @@ let Renderer = window.Vex.Flow.Renderer
 
 class Sheet extends Component {
 
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.lyrics = new Lyrics(this.props.songcheat, 0)
     this.state = {
@@ -23,7 +23,7 @@ class Sheet extends Component {
     }
   }
 
-  vextab() {
+  vextab () {
     let errors = []
     let warnings = []
 
@@ -34,7 +34,7 @@ class Sheet extends Component {
         let score = SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit)
 
         console.info('Parsing score...')
-        let artist = new Artist(10, 10, 600, {scale: 1.0})
+        let artist = new Artist(10, 10, 800, {scale: 1.0})
         let vextab = new VexTab(artist)
         vextab.parse(score)
 
@@ -59,7 +59,7 @@ class Sheet extends Component {
     }
   }
 
-  parseLyrics(units) {
+  parseLyrics (units) {
     let errors = []
     let warnings = []
     let texts = []
@@ -73,22 +73,22 @@ class Sheet extends Component {
       // get lyrics text
       texts.push(
         unit.id
-        ? this.lyrics.getUnitText(unit, 0, 0, 'rhythm', true)
+        ? '[Respect durations]\n\n' + this.lyrics.getUnitText(unit, 0, 0, 'rhythm', true) + '\n\n[Compact]\n\n' + this.lyrics.getUnitText(unit, 1, 0, 'rhythm', false)
         : this.lyrics.getPartText(unit.part, 0, 2, 'rhythm', true))
     }
 
     this.setState({errors: errors, warnings: warnings, texts: texts})
   }
 
-  componentWillMount() {
+  componentWillMount () {
     this.parseLyrics(this.props.units)
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.vextab()
   }
 
-  componentWillReceiveProps(nextProps) {
+  componentWillReceiveProps (nextProps) {
     if (nextProps.songcheat !== this.props.songcheat) {
       this.lyrics = new Lyrics(nextProps.songcheat, 0)
     }
@@ -97,7 +97,7 @@ class Sheet extends Component {
     }
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
       this.vextab()
     } else {
@@ -105,14 +105,14 @@ class Sheet extends Component {
     }
   }
 
-  render() {
+  render () {
     return (<div>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
       {
         this.props.units.map((unit, index) => <div key={unit.id || index}>
           <div className='lyrics'>{this.state.texts[index]}</div>
-          <canvas key={unit.id} id={'canvas.' + unit.id}/>
+          <canvas key={unit.id} id={'canvas.' + unit.id} />
         </div>)
       }
     </div>)

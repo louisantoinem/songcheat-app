@@ -1,13 +1,15 @@
 import React, { Component } from 'react'
+import Popup from 'react-popup'
+import Dropzone from 'react-dropzone'
 
 import './App.css'
 
-// child components
+// app components
 import Editor from './Editor'
 import Chords from './Chords'
 import Rhythm from './Rhythm'
 import Sheet from './Sheet'
-import Dropzone from 'react-dropzone'
+import Prompt from './Prompt'
 
 // business modules
 import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
@@ -25,7 +27,8 @@ class App extends Component {
       showChordIndex: null,
       showRhythmIndex: null,
       showPartIndex: null,
-      showUnitIndex: null
+      showUnitIndex: null,
+      filename: null
     }
   }
 
@@ -33,7 +36,10 @@ class App extends Component {
     let self = this
     acceptedFiles.forEach(file => {
       const reader = new FileReader()
-      reader.onload = () => { self.songcheat(reader.result) }
+      reader.onload = () => {
+        self.setState({ filename: file.name })
+        self.songcheat(reader.result)
+      }
       reader.onabort = () => console.log('file reading was aborted')
       reader.onerror = () => console.log('file reading has failed')
       reader.readAsText(file)
@@ -43,6 +49,31 @@ class App extends Component {
   componentWillMount () {
     // initialize on SongCheat template provided by songcheat-core
     this.songcheat(template)
+
+    // register prompt plugin
+    Popup.registerPlugin('prompt', function (title, defaultValue, placeholder, callback) {
+      let promptValue = defaultValue
+      let promptChange = function (value) {
+        promptValue = value
+      }
+
+      this.create({
+        title: title,
+        content: <Prompt onChange={promptChange} placeholder={placeholder} defaultValue={defaultValue} />,
+        buttons: {
+          left: ['cancel'],
+          right: [{
+            text: 'Save',
+            key: '⌘+s',
+            className: 'success',
+            action: function () {
+              callback(promptValue)
+              Popup.close()
+            }
+          }]
+        }
+      })
+    })
   }
 
   songcheat (source) {
@@ -130,11 +161,13 @@ class App extends Component {
 
       <div>
 
+        <Popup />
+
         <div className='rightPanel'>
           {this.getPanel()}
         </div>
 
-        <Editor width='60%' text={this.state.source} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
+        <Editor width='50%' text={this.state.source} filename={this.state.filename} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
 
         {/* drop zone cannot be over the editor since it would prevent clicking in the editor (drop zone needs pointer events to detect drag) */}
         {/* it also prevents scrolling the right panel, so give it only 10% width */}

@@ -3,11 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "keymaster": "^1.6.2",
     "react": "^16.2.0",
     "react-ace": "^5.8.0",
     "react-dom": "^16.2.0",
     "react-dropzone": "^4.2.3",
+    "react-popup": "^0.9.1",
     "react-scripts": "1.0.17",
+    "save-as": "^0.1.8",
     "songcheat-core": "file:../songcheat-core",
     "vextab": "^2.0.13"
   },
