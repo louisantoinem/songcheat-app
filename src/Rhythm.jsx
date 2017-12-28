@@ -31,8 +31,7 @@ class Rhythm extends Component {
         try {
           // parse and render rhythm score with vextab
           console.info('Converting rhythm to vextab score...')
-          let score = 'options tempo=' + this.props.songcheat.signature.tempo + ' player=false tab-stems=false tab-stem-direction=up\n'
-          score += SongcheatVexTab.Notes2Stave(this.props.songcheat, 0, rhythm.compiledScore, true, 'top', 'Rhythm ' + rhythm.name, 1, true, false) + ' options space=20'
+          let score = SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm)
 
           // register warning if not a whole number of bars
           if (rhythm.duration % this.props.songcheat.barDuration) {
