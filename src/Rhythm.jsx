@@ -14,7 +14,7 @@ let Renderer = window.Vex.Flow.Renderer
 
 class Rhythm extends Component {
 
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       errors: [],
@@ -22,7 +22,7 @@ class Rhythm extends Component {
     }
   }
 
-  vextab() {
+  vextab () {
     let errors = []
     let warnings = []
 
@@ -59,11 +59,11 @@ class Rhythm extends Component {
     this.setState({errors: errors, warnings: warnings})
   }
 
-  componentDidMount() {
+  componentDidMount () {
     this.vextab()
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
       this.vextab()
     } else {
@@ -71,11 +71,11 @@ class Rhythm extends Component {
     }
   }
 
-  render() {
+  render () {
     return (<div>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
-      {this.props.rhythms.map(rhythm => rhythm.inline ? '' : <canvas key={rhythm.id} id={'canvas.' + rhythm.id}/>)}
+      {this.props.rhythms.map(rhythm => rhythm.inline ? '' : <canvas key={rhythm.id} id={'canvas.' + rhythm.id} />)}
     </div>)
   }
 }

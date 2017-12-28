@@ -78,12 +78,10 @@ div.error {
 
 p.error {
   color: red;
-  font-size: 1em;
 }
 
 p.warning {
   color: orange;
-  font-size: 1em;
 }
 
 /* Popup */
