@@ -11,7 +11,7 @@
     "react-popup": "^0.9.1",
     "react-scripts": "1.0.17",
     "save-as": "^0.1.8",
-    "songcheat-core": "file:../songcheat-core",
+    "songcheat-core": "git+https://github.com/louisantoinem/songcheat-core.git",
     "vextab": "^2.0.13"
   },
   "scripts": {
