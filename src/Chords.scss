@@ -1,0 +1,19 @@
+.Chords {
+  > div {
+    display: inline-block;
+    vertical-align: top;
+
+    img {
+      display: block;
+      width: 150px;
+    }
+
+    p {
+      font-size: 0.85em;
+      text-align: center;
+      margin-top: 0;
+      width: 125px;
+      margin: 0 auto;
+    }
+  }
+}

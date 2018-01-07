@@ -1,6 +1,8 @@
 import React, {Component} from 'react'
 import {ChordPix} from 'songcheat-core'
 
+import './Chords.css'
+
 class Chords extends Component {
 
   chordImage (chord) {
@@ -12,12 +14,12 @@ class Chords extends Component {
   }
 
   render () {
-    return (<div>
+    return (<div className='Chords'>
       {
         this.props.chords.map(
           chord => chord.inline
           ? ''
-          : <div className='chordDiagram' key={chord.id}>
+          : <div key={chord.id}>
             {this.chordImage(chord)}
             <p>{chord.comment}</p>
           </div>)

@@ -1,0 +1,67 @@
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.App {
+  font-family: 'Roboto';
+  height: 100%;
+}
+
+.App-header {
+  background-color: #333;
+  height: 50px;
+  padding: 15px;
+  color: white;
+  text-align: center;
+}
+
+.App-title {
+  font-size: 1.25em;
+}
+
+div.error {
+  color: red;
+  font-size: 1.1em;
+}
+
+p.error {
+  color: red;
+}
+
+p.warning {
+  color: orange;
+}
+
+div.rightPanel {
+  position: fixed;
+  right: 10px;
+  top: 60px;
+  width: 47%;
+  /* in case ACE editor and right panel overlap, ACE editor white background must not hide right panel contents */
+  z-index: 1;
+  max-height: 100%;
+  overflow: auto;
+  opacity: 0.8;
+  padding: 10px;
+  border: 1px solid #BFBFBF;
+  box-shadow: 10px 10px 5px #aaaaaa;
+}
+
+.lyrics {
+  white-space: pre;
+  line-height: 150%;
+  padding: 10px;
+  font-family: 'Roboto Mono', 'Monaco', monospace;
+  font-size: 0.85em;
+  overflow: auto;
+}
