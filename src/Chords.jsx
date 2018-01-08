@@ -17,7 +17,7 @@ class Chords extends Component {
     return (<div className='Chords'>
       {
         this.props.chords.map(
-          chord => chord.inline
+          chord => chord.inline && false // UPDATE: show inline chords
           ? ''
           : <div key={chord.id}>
             {this.chordImage(chord)}

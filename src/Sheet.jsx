@@ -27,6 +27,9 @@ class Sheet extends Component {
     let errors = []
     let warnings = []
 
+    let W = window.innerWidth * 0.47
+    this.props.songcheat.barsPerLine = Utils.prevPowerOf2(W / 400)
+
     for (let unit of this.props.units) {
       try {
         // parse and render unit score with vextab
@@ -34,7 +37,7 @@ class Sheet extends Component {
         let score = SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit)
 
         console.info('Parsing score...')
-        let artist = new Artist(10, 10, 800, {scale: 1.0})
+        let artist = new Artist(10, 10, W, {scale: 1.0})
         let vextab = new VexTab(artist)
         vextab.parse(score)
 

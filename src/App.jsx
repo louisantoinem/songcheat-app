@@ -88,7 +88,6 @@ class App extends Component {
       source = Utils.replaceComposedChars(source)
       let songcheat = this.parser.parse(source)
       songcheat = this.compiler.compile(songcheat)
-      songcheat.barsPerLine = 2
       this.setState({source: source, songcheat: songcheat, error: null})
     } catch (e) {
       this.setState({source: source, songcheat: null, error: e.toString()})
@@ -126,12 +125,10 @@ class App extends Component {
     if (this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
 
     if (this.state.showChordIndex !== null) {
-      // always show all chords, not just the selected ones
-      return <Chords chords={this.state.songcheat.chords/* .slice(this.state.showChordIndex, this.state.showChordIndex + 1) */} />
+      return <Chords chords={this.state.songcheat.chords.slice(this.state.showChordIndex, this.state.showChordIndex + 1)} />
     }
     if (this.state.showRhythmIndex !== null) {
-      // always show all rhythms, not just the selected ones
-      return <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat.rhythms/* .slice(this.state.showRhythmIndex, this.state.showRhythmIndex + 1) */} />
+      return <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat.rhythms.slice(this.state.showRhythmIndex, this.state.showRhythmIndex + 1)} />
     }
     if (this.state.showPartIndex !== null) {
       // create a dummy unit with no lyrics for each selected part
@@ -172,6 +169,7 @@ class App extends Component {
         <TabList>
           <Tab>General</Tab>
           <Tab>Chords</Tab>
+          <Tab>Rhythms</Tab>
           <Tab>Score</Tab>
           <Tab>Ascii</Tab>
           <Tab>Editor</Tab>
@@ -183,6 +181,10 @@ class App extends Component {
 
         <TabPanel>
           <Chords chords={this.state.songcheat ? this.state.songcheat.chords : []} />
+        </TabPanel>
+
+        <TabPanel>
+          <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat ? this.state.songcheat.rhythms : []} />
         </TabPanel>
 
         <TabPanel>

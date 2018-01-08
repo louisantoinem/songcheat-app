@@ -45,16 +45,16 @@ p.warning {
 div.rightPanel {
   position: fixed;
   right: 10px;
-  top: 60px;
+  top: 40px;
   width: 47%;
   /* in case ACE editor and right panel overlap, ACE editor white background must not hide right panel contents */
   z-index: 1;
   max-height: 100%;
   overflow: auto;
   opacity: 0.8;
-  padding: 10px;
-  border: 1px solid #BFBFBF;
-  box-shadow: 10px 10px 5px #aaaaaa;
+  // padding: 10px;
+  // border: 1px solid #BFBFBF;
+  // box-shadow: 10px 10px 5px #aaaaaa;
 }
 
 .lyrics {

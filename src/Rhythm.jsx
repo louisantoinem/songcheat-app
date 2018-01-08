@@ -27,7 +27,8 @@ class Rhythm extends Component {
     let warnings = []
 
     for (let rhythm of this.props.rhythms) {
-      if (!rhythm.inline) {
+      let canvas = document.getElementById('canvas.' + rhythm.id)
+      if (canvas) {
         try {
           // parse and render rhythm score with vextab
           console.info('Converting rhythm to vextab score...')
@@ -45,7 +46,7 @@ class Rhythm extends Component {
           vextab.parse(score)
 
           console.info('Rendering score...')
-          artist.render(new Renderer(document.getElementById('canvas.' + rhythm.id), Renderer.Backends.CANVAS))
+          artist.render(new Renderer(canvas, Renderer.Backends.CANVAS))
 
           console.info('Score done!')
         } catch (e) {
@@ -74,7 +75,7 @@ class Rhythm extends Component {
     return (<div>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
-      {this.props.rhythms.map(rhythm => rhythm.inline ? '' : <canvas key={rhythm.id} id={'canvas.' + rhythm.id} />)}
+      {this.props.rhythms.map(rhythm => rhythm.inline && false /* UPDATE: show inline rhytms */ ? '' : <div key={rhythm.id}><canvas id={'canvas.' + rhythm.id} /></div>)}
     </div>)
   }
 }

@@ -18,6 +18,7 @@ class Score extends Component {
 
   constructor (props) {
     super(props)
+    this.updateWindowDimensions = this.vextab.bind(this)
     this.lyrics = new Lyrics(props.songcheat, 0)
     this.state = {
       errors: [],
@@ -29,6 +30,9 @@ class Score extends Component {
     let errors = []
     let warnings = []
 
+    let W = window.innerWidth - 20
+    this.props.songcheat.barsPerLine = Utils.prevPowerOf2(W / 300)
+
     for (let unit of this.props.units) {
       try {
         // parse lyrics and show warnings if any
@@ -39,7 +43,7 @@ class Score extends Component {
         let score = SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit)
 
         console.info('Parsing score...')
-        let artist = new Artist(10, 10, 800, {scale: 1.0})
+        let artist = new Artist(10, 10, W, {scale: 1.0})
         let vextab = new VexTab(artist)
         vextab.parse(score)
 
@@ -66,6 +70,11 @@ class Score extends Component {
 
   componentDidMount () {
     this.vextab()
+    window.addEventListener('resize', this.updateWindowDimensions)
+  }
+
+  componentWillUnmount () {
+    window.removeEventListener('resize', this.updateWindowDimensions)
   }
 
   componentWillReceiveProps (nextProps) {
