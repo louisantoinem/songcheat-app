@@ -182,15 +182,15 @@ class App extends Component {
         </TabPanel>
 
         <TabPanel>
-          <Chords chords={this.state.songcheat.chords} />
+          <Chords chords={this.state.songcheat ? this.state.songcheat.chords : []} />
         </TabPanel>
 
         <TabPanel>
-          <Score songcheat={this.state.songcheat} units={this.state.songcheat.structure} />
+          <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         </TabPanel>
 
         <TabPanel>
-          <Ascii songcheat={this.state.songcheat} units={this.state.songcheat.structure} maxConsecutiveSpaces={1} split={0} showDots={false} />
+          <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} maxConsecutiveSpaces={1} split={0} showDots={false} />
         </TabPanel>
 
         <TabPanel>

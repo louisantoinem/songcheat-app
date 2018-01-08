@@ -12,6 +12,8 @@ let VexTab = window.VexTab
 let Artist = window.Artist
 let Renderer = window.Vex.Flow.Renderer
 
+Artist.NOLOGO = true
+
 class Score extends Component {
 
   constructor (props) {
