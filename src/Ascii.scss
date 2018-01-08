@@ -1,18 +1,28 @@
 .Ascii {
-  columns: 550px;
-  column-fill: auto;
-  white-space: pre;
-  line-height: 150%;
-  padding: 10px;
   font-family: 'Roboto Mono', 'Monaco', monospace;
-  font-size: 0.85em;
-  overflow: auto;
 
-  > div {
-    > p {
-      font-weight: bold;
+  > div.Select {
+    float: left;
+    margin: 0 10px;
+    width: 500px;
+  }
+
+  > div.Lyrics {
+    clear: both;
+    overflow: auto;
+    white-space: pre;
+    line-height: 150%;
+    padding: 10px;
+    font-size: 0.85em;
+    column-fill: auto;
+
+    > div {
+      > p {
+        font-weight: bold;
+      }
+      overflow: auto;
+      break-inside: avoid-column;
+      margin-bottom: 40px;
     }
-    break-inside: avoid-column;
-    margin-bottom: 40px;
   }
 }

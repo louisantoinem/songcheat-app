@@ -192,7 +192,7 @@ class App extends Component {
         </TabPanel>
 
         <TabPanel>
-          <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} maxConsecutiveSpaces={1} split={0} showDots={false} />
+          <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         </TabPanel>
 
         <TabPanel>
