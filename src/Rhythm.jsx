@@ -3,6 +3,10 @@ import React, {Component} from 'react'
 // business modules
 import {Utils, VexTab as SongcheatVexTab} from 'songcheat-core'
 
+import './Rhythm.css'
+import Select from 'react-select'
+import 'react-select/dist/react-select.css'
+
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
 let Artist = vextab.Artist
@@ -17,6 +21,8 @@ class Rhythm extends Component {
   constructor (props) {
     super(props)
     this.state = {
+      showInline: 0,
+      hasInline: false,
       errors: [],
       warnings: []
     }
@@ -25,8 +31,10 @@ class Rhythm extends Component {
   vextab () {
     let errors = []
     let warnings = []
+    let hasInline = false
 
-    for (let rhythm of this.props.rhythms) {
+    for (let rhythm of this.rhythms()) {
+      if (rhythm.inline) hasInline = true
       let canvas = document.getElementById('canvas.' + rhythm.id)
       if (canvas) {
         try {
@@ -56,7 +64,15 @@ class Rhythm extends Component {
       }
     }
 
-    this.setState({errors: errors, warnings: warnings})
+    this.setState({hasInline: hasInline})
+
+    // update state if any new error or warning during vextabbing
+    if (errors.length > 0 || warnings.length > 0) {
+      this.setState({
+        errors: Array.prototype.concat(this.state.errors, errors),
+        warnings: Array.prototype.concat(this.state.warnings, warnings)
+      })
+    }
   }
 
   componentDidMount () {
@@ -64,18 +80,38 @@ class Rhythm extends Component {
   }
 
   componentDidUpdate (prevProps, prevState) {
-    if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
+    if (prevProps.songcheat !== this.props.songcheat || prevState.showInline !== this.state.showInline || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
       this.vextab()
     } else {
       console.info('Not vextabbing since nothing changed')
     }
   }
 
+  selectChanged (name, selectedOption) {
+    if (selectedOption) this.setState({ [name]: selectedOption.value })
+  }
+
+  rhythms () {
+    if (this.props.rhythms) return this.props.rhythms
+    return this.props.songcheat ? this.props.songcheat.rhythms : []
+  }
+
   render () {
-    return (<div>
+    return (<div className='Rhythm'>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
-      {this.props.rhythms.map(rhythm => rhythm.inline && false /* UPDATE: show inline rhytms */ ? '' : <div key={rhythm.id}><canvas id={'canvas.' + rhythm.id} /></div>)}
+
+      {this.props.rhythms || !this.state.hasInline ? '' : <Select
+        value={this.state.showInline}
+        onChange={(selectedOption) => { this.selectChanged('showInline', selectedOption) }}
+        options={[
+          { value: 0, label: 'Hide inline rhyhtms' },
+          { value: 1, label: 'Show inline rhythms' }
+        ]}
+      />}
+      {this.props.rhythms ? '' : <h3>Rhythms used in this song: </h3>}
+
+      {this.rhythms().map(rhythm => rhythm.inline && !this.state.showInline ? '' : <div key={rhythm.id}><canvas id={'canvas.' + rhythm.id} /></div>)}
     </div>)
   }
 }

@@ -167,24 +167,20 @@ class App extends Component {
 
       <Tabs>
         <TabList>
-          <Tab>General</Tab>
-          <Tab>Chords</Tab>
-          <Tab>Rhythms</Tab>
+          <Tab>Song</Tab>
           <Tab>Score</Tab>
           <Tab>Ascii</Tab>
           <Tab>Editor</Tab>
         </TabList>
 
         <TabPanel>
-          <General songcheat={this.state.songcheat} />
-        </TabPanel>
-
-        <TabPanel>
-          <Chords chords={this.state.songcheat ? this.state.songcheat.chords : []} />
-        </TabPanel>
-
-        <TabPanel>
-          <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat ? this.state.songcheat.rhythms : []} />
+          <div className='columns2'>
+            <div style={{padding: '0 15px'}}>
+              <General songcheat={this.state.songcheat} />
+              <Chords songcheat={this.state.songcheat} />
+            </div>
+            <Rhythm songcheat={this.state.songcheat} />
+          </div>
         </TabPanel>
 
         <TabPanel>

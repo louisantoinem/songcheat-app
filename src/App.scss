@@ -42,6 +42,20 @@ p.warning {
   color: orange;
 }
 
+div.columns3 {
+  > div {
+    float: left;
+    width: 32%;
+  }
+}
+
+div.columns2 {
+  > div {
+    float: left;
+    width: 49%;
+  }
+}
+
 div.rightPanel {
   position: fixed;
   right: 10px;
