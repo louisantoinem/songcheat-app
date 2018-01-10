@@ -16,6 +16,7 @@ import Sheet from './Sheet'
 import Prompt from './Prompt'
 import Ascii from './Ascii'
 import Score from './Score'
+import Player from './Player'
 
 // business modules
 import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
@@ -27,6 +28,7 @@ class App extends Component {
     super(props)
     this.parser = new Parser()
     this.compiler = new Compiler(0)
+    this.audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)()
     this.state = {
       source: null,
       songcheat: null,
@@ -179,11 +181,12 @@ class App extends Component {
               <General songcheat={this.state.songcheat} />
               <Chords songcheat={this.state.songcheat} />
             </div>
-            <Rhythm songcheat={this.state.songcheat} />
+            <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
           </div>
         </TabPanel>
 
         <TabPanel>
+          <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         </TabPanel>
 

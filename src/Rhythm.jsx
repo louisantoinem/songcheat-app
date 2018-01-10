@@ -1,11 +1,12 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, VexTab as SongcheatVexTab} from 'songcheat-core'
+import {Utils, Compiler, VexTab as SongcheatVexTab} from 'songcheat-core'
 
 import './Rhythm.css'
 import Select from 'react-select'
 import 'react-select/dist/react-select.css'
+import Player from './Player'
 
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
@@ -97,6 +98,8 @@ class Rhythm extends Component {
   }
 
   render () {
+    let compiler = new Compiler()
+
     return (<div className='Rhythm'>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
@@ -111,7 +114,10 @@ class Rhythm extends Component {
       />}
       {this.props.rhythms ? '' : <h3>Rhythms used in this song: </h3>}
 
-      {this.rhythms().map(rhythm => rhythm.inline && !this.state.showInline ? '' : <div key={rhythm.id}><canvas id={'canvas.' + rhythm.id} /></div>)}
+      {this.rhythms().map(rhythm => rhythm.inline && !this.state.showInline ? '' : <div key={rhythm.id}>
+        <Player audioCtx={this.props.audioCtx} rhythm songcheat={this.props.songcheat} units={[compiler.getRhythmUnit(this.props.songcheat, rhythm)]} />
+        <canvas id={'canvas.' + rhythm.id} />
+      </div>)}
     </div>)
   }
 }
