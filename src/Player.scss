@@ -1,5 +1,11 @@
 .Player {
+  max-width: 640px;
+
   a {
+    cursor: pointer;
+  }
+
+  .controls a {
     font-family: 'Times';
     cursor: pointer;
     font-size: 1.2em;
@@ -15,5 +21,29 @@
     position: absolute;
     top: 10px;
     right: 10px;
+  }
+
+  .options {
+    float: right;
+
+    > div {
+      margin-top: 10px;
+
+      label {
+        font-size: 0.85em;
+        vertical-align: top;
+      }
+
+      span {
+        font-size: 0.9em;
+        font-weight: bold;
+        padding-left: 10px;
+      }
+
+      a {
+        font-size: 0.9em;
+        padding-left: 10px;
+      }
+    }
   }
 }
