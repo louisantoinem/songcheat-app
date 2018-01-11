@@ -33,21 +33,42 @@ class PlayerUI extends Component {
       loop: this.props.rhythm,
       capo: parseInt(this.props.songcheat.capo, 10),
       signature: this.props.songcheat.signature,
-      type: this.props.songcheat.wave
-      // onDone: function () { $stopLink.trigger('click') },
-      // onCountdown: function (c) { $countdownZone.html(c || '') }
+      type: this.props.songcheat.wave,
+      onDone: () => this.forceUpdate(),
+      onCountdown: (c) => this.setState({countdown: c || ''})
     })
 
     if (this.props.rhythm) this.player.setMode(this.player.MODE_RHYTHM)
+
+    this.state = { countdown: '' }
   }
 
   play () {
-    this.player.play(this.player.paused || this.props.rhythm ? 0 : 0 /* 3 */)
+    this.player.play(this.player.paused || this.props.rhythm ? 0 : 3)
+    this.forceUpdate()
+  }
+
+  pause () {
+    this.player.pause()
+    this.forceUpdate()
+  }
+
+  stop () {
+    this.player.stop()
+    this.forceUpdate()
+  }
+
+  rewind () {
+    this.player.rewind()
   }
 
   render () {
     return <div className='Player'>
-      <a onClick={() => this.play()}>&#9658;</a>
+      {this.player.stopped || this.player.paused ? <a onClick={() => this.play()}>&#9658;</a> : null}
+      {this.player.stopped || this.player.paused ? null : <a onClick={() => this.pause()}>&#10074;&#10074;</a>}
+      {this.player.stopped ? null : <a onClick={() => this.stop()}>&#9724;</a>}
+      {this.player.stopped ? null : <a onClick={() => this.rewind()}>&#9668;</a>}
+      <span className='countdown'>{this.state.countdown}</span>
     </div>
   }
 }
