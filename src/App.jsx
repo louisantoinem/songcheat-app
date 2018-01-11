@@ -1,10 +1,12 @@
 import React, { Component } from 'react'
 import Popup from 'react-popup'
 import Dropzone from 'react-dropzone'
+import SplitPane from 'react-split-pane'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 
 import './App.css'
 import './Popup.css'
+import './SplitPane.css'
 import 'react-tabs/style/react-tabs.css'
 
 // app components
@@ -147,6 +149,44 @@ class App extends Component {
     return <General songcheat={this.state.songcheat} />
   }
 
+  renderTabs () {
+    return <Tabs>
+      <TabList>
+        <Tab>Song</Tab>
+        <Tab>Score</Tab>
+        <Tab>Ascii</Tab>
+        <Tab>Editor</Tab>
+      </TabList>
+
+      <TabPanel>
+        <div className='columns2'>
+          <div style={{padding: '0 15px'}}>
+            <General songcheat={this.state.songcheat} />
+            <Chords songcheat={this.state.songcheat} />
+          </div>
+          <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
+        </div>
+      </TabPanel>
+
+      <TabPanel>
+        <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+        <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+      </TabPanel>
+
+      <TabPanel>
+        <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+      </TabPanel>
+
+      <TabPanel>
+        <div className='rightPanel'>
+          {this.getEditorPanel()}
+        </div>
+        <Editor width='50%' text={this.state.source} filename={this.state.filename} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
+    </TabPanel>
+
+    </Tabs>
+  }
+
   render () {
     return (<div className='App'>
 
@@ -159,23 +199,20 @@ class App extends Component {
       {/* drop zone cannot be over the editor since it would prevent clicking in the editor (drop zone needs pointer events to detect drag) */}
       {/* it also prevents scrolling the right panel, so give it only 10% width */}
       <Dropzone
-        style={{ position: 'fixed', right: '0px', bottom: '0px', width: '10%', height: '100%', opacity: '0.2', zIndex: 1 /* >= right panel */ }}
-        acceptStyle={{ backgroundColor: 'green', width: '100%' }}
-        rejectStyle={{ backgroundColor: 'red', width: '100%' }}
+        style={{}}
+        acceptClassName='overlay green'
+        rejectClassName='overlay red'
         disableClick
         multiple={false}
         accept='text/plain'
-        onDrop={this.onDrop.bind(this)} />
+        onDrop={this.onDrop.bind(this)} >
 
-      <Tabs>
-        <TabList>
-          <Tab>Song</Tab>
-          <Tab>Score</Tab>
-          <Tab>Ascii</Tab>
-          <Tab>Editor</Tab>
-        </TabList>
+        {this.renderTabs()}
 
-        <TabPanel>
+      </Dropzone>
+
+      {/* <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} minSize={300} defaultSize={500}>
+        <div>
           <div className='columns2'>
             <div style={{padding: '0 15px'}}>
               <General songcheat={this.state.songcheat} />
@@ -183,25 +220,9 @@ class App extends Component {
             </div>
             <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
           </div>
-        </TabPanel>
-
-        <TabPanel>
-          <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-        </TabPanel>
-
-        <TabPanel>
-          <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-        </TabPanel>
-
-        <TabPanel>
-          <div className='rightPanel'>
-            {this.getEditorPanel()}
-          </div>
-          <Editor width='50%' text={this.state.source} filename={this.state.filename} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
-          </TabPanel>
-
-      </Tabs>
+        </div>
+        {this.renderTabs()}
+      </SplitPane> */}
 
     </div>)
   }

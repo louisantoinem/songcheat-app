@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Player} from 'songcheat-core'
+import {Utils, Player} from 'songcheat-core'
 
 import './Player.css'
 // import Select from 'react-select'
@@ -9,7 +9,13 @@ class PlayerUI extends Component {
 
   constructor (props) {
     super(props)
+    this.getNotes()
+    this.state = {
+      countdown: ''
+    }
+  }
 
+  getNotes () {
     // if no unit given, use all units in song
     let units = this.props.units || this.props.songcheat.structure
 
@@ -39,10 +45,6 @@ class PlayerUI extends Component {
     })
 
     if (this.props.rhythm) this.player.setMode(this.player.MODE_RHYTHM)
-
-    this.state = {
-      countdown: ''
-    }
   }
 
   play () {
@@ -73,6 +75,12 @@ class PlayerUI extends Component {
   volume (volume) {
     this.player.setVolume(parseInt(volume, 10))
     this.forceUpdate()
+  }
+
+  componentWillReceiveProps (nextProps) {
+    if (nextProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(nextProps.units, this.props.units)) {
+      this.getNotes()
+    }
   }
 
   render () {

@@ -42,18 +42,33 @@ p.warning {
   color: orange;
 }
 
-div.columns3 {
-  > div {
-    float: left;
-    width: 32%;
+.overlay {
+  &::after {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0.2;
+    z-index: 2;
+    content: ' ';
+  }
+
+  &.red::after {
+    background-color: red;
+  }
+
+  &.green::after {
+    background-color: green;
   }
 }
 
 div.columns2 {
-  > div {
-    float: left;
-    width: 49%;
-  }
+  display: grid;
+  grid-template-columns: 50% 50%;
+  grid-template-rows: 100%;
 }
 
 div.rightPanel {
