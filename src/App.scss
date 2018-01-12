@@ -18,11 +18,15 @@
 }
 
 .App-header {
-  background-color: #333;
-  height: 50px;
-  padding: 15px;
+  background-color: #ff6666;
+  background: radial-gradient(circle farthest-corner at 800px 0, #6699ff, #336699);
+  padding: 10px 0;
   color: white;
   text-align: center;
+
+  h1 {
+    margin: 0;
+  }
 }
 
 .App-title {
@@ -74,7 +78,7 @@ div.columns2 {
 div.rightPanel {
   position: fixed;
   right: 10px;
-  top: 40px;
+  top: 70px;
   width: 47%;
   /* in case ACE editor and right panel overlap, ACE editor white background must not hide right panel contents */
   z-index: 1;

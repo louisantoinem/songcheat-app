@@ -5,7 +5,8 @@ import './General.css'
 class General extends Component {
 
   render () {
-    return <div className='General'>
+    return !this.props.songcheat ? null :
+    <div className='General'>
       <h1>{this.props.songcheat.title}</h1>
       <h2>{this.props.songcheat.artist}, {this.props.songcheat.year}</h2>
       <p>{this.props.songcheat.comment}</p>
@@ -13,7 +14,6 @@ class General extends Component {
       <h3>Capo: {this.props.songcheat.capo > 0 ? this.props.songcheat.capo : 'n/a'}</h3>
       <h3>Tuning: {this.props.songcheat.tuning}</h3>
       {/* TODO: Show: difficulty, video, tutorial, key, time, shuffle (svg) */}
-
     </div>
   }
 }

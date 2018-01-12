@@ -192,12 +192,10 @@ class App extends Component {
 
       <Popup />
 
-      {/* <header className='App-header'>
-        <h1 className='App-title'>Welcome to SongCheat ♬</h1>
-      </header> */}
+      <header className='App-header'>
+        <h1 className='App-title'>SongCheat &nbsp; ♬</h1>
+      </header>
 
-      {/* drop zone cannot be over the editor since it would prevent clicking in the editor (drop zone needs pointer events to detect drag) */}
-      {/* it also prevents scrolling the right panel, so give it only 10% width */}
       <Dropzone
         style={{}}
         acceptClassName='overlay green'
@@ -212,15 +210,7 @@ class App extends Component {
       </Dropzone>
 
       {/* <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} minSize={300} defaultSize={500}>
-        <div>
-          <div className='columns2'>
-            <div style={{padding: '0 15px'}}>
-              <General songcheat={this.state.songcheat} />
-              <Chords songcheat={this.state.songcheat} />
-            </div>
-            <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
-          </div>
-        </div>
+        {this.renderTabs()}
         {this.renderTabs()}
       </SplitPane> */}
 

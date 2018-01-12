@@ -35,7 +35,6 @@ class Chords extends Component {
   updateHasInline () {
     let hasInline = false
     for (let chord of this.chords()) if (chord.inline) hasInline = true
-    console.log(hasInline)
     this.setState({hasInline: hasInline})
   }
 

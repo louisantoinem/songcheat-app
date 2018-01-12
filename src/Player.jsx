@@ -77,12 +77,12 @@ class PlayerUI extends Component {
     this.forceUpdate()
   }
 
-  componentWillReceiveProps (nextProps) {
-    if (nextProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(nextProps.units, this.props.units)) {
+  componentDidUpdate (prevProps, prevState) {
+    if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
       this.getNotes()
     }
   }
-
+  
   render () {
     return <div className='Player'>
 
