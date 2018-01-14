@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import ReactResizeDetector from 'react-resize-detector'
 
 // business modules
 import {Utils, Compiler, VexTab as SongcheatVexTab} from 'songcheat-core'
@@ -34,6 +35,8 @@ class Rhythm extends Component {
     let warnings = []
     let hasInline = false
 
+    let W = this.rootDiv.offsetWidth - 20
+
     for (let rhythm of this.rhythms()) {
       if (rhythm.inline) hasInline = true
       let canvas = document.getElementById('canvas.' + rhythm.id)
@@ -50,7 +53,7 @@ class Rhythm extends Component {
           }
 
           console.info('Parsing score...')
-          let artist = new Artist(10, 10, 600, {scale: 1.0})
+          let artist = new Artist(10, 10, W, {scale: 1.0})
           let vextab = new VexTab(artist)
           vextab.parse(score)
 
@@ -65,15 +68,11 @@ class Rhythm extends Component {
       }
     }
 
-    this.setState({hasInline: hasInline})
-
-    // update state if any new error or warning during vextabbing
-    if (errors.length > 0 || warnings.length > 0) {
-      this.setState({
-        errors: Array.prototype.concat(this.state.errors, errors),
-        warnings: Array.prototype.concat(this.state.warnings, warnings)
-      })
-    }
+    this.setState({
+      hasInline: hasInline,
+      errors: errors,
+      warnings: warnings
+    })
   }
 
   componentDidMount () {
@@ -100,7 +99,7 @@ class Rhythm extends Component {
   render () {
     let compiler = new Compiler()
 
-    return (<div className='Rhythm'>
+    return (<div ref={div => { this.rootDiv = div }} className='Rhythm'>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
 
@@ -118,6 +117,8 @@ class Rhythm extends Component {
         <Player audioCtx={this.props.audioCtx} rhythm songcheat={this.props.songcheat} units={[compiler.getRhythmUnit(this.props.songcheat, rhythm)]} />
         <canvas id={'canvas.' + rhythm.id} />
       </div>)}
+
+      <ReactResizeDetector handleWidth handleHeight onResize={() => { if (this.rootDiv) this.vextab() }} />
     </div>)
   }
 }

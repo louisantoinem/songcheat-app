@@ -2,6 +2,14 @@
   animation: App-logo-spin infinite 20s linear;
   height: 80px;
 }
+
+section.App {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: 'Roboto';
+}
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
@@ -10,11 +18,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.App {
-  font-family: 'Roboto';
-  height: 100%;
 }
 
 .App-header {
@@ -73,28 +76,4 @@ div.columns2 {
   display: grid;
   grid-template-columns: 50% 50%;
   grid-template-rows: 100%;
-}
-
-div.rightPanel {
-  position: fixed;
-  right: 10px;
-  top: 70px;
-  width: 47%;
-  /* in case ACE editor and right panel overlap, ACE editor white background must not hide right panel contents */
-  z-index: 1;
-  max-height: 100%;
-  overflow: auto;
-  opacity: 0.8;
-  // padding: 10px;
-  // border: 1px solid #BFBFBF;
-  // box-shadow: 10px 10px 5px #aaaaaa;
-}
-
-.lyrics {
-  white-space: pre;
-  line-height: 150%;
-  padding: 10px;
-  font-family: 'Roboto Mono', 'Monaco', monospace;
-  font-size: 0.85em;
-  overflow: auto;
 }

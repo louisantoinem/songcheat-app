@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import ReactResizeDetector from 'react-resize-detector'
 
 // business modules
 import {Utils, VexTab as SongcheatVexTab, Lyrics, LyricsException} from 'songcheat-core'
@@ -18,7 +19,6 @@ class Score extends Component {
 
   constructor (props) {
     super(props)
-    this.updateWindowDimensions = this.vextab.bind(this)
     this.lyrics = new Lyrics(props.songcheat, 0)
     this.state = {
       errors: [],
@@ -30,51 +30,57 @@ class Score extends Component {
     let errors = []
     let warnings = []
 
-    let W = window.innerWidth - 20
-    this.props.songcheat.barsPerLine = Utils.prevPowerOf2(W / 300)
+    if (this.props.songcheat) {
+      let t0 = Date.now()
+      let W = this.rootDiv.offsetWidth - 20
+      this.props.songcheat.barsPerLine = Utils.prevPowerOf2(W / 300)
 
-    for (let unit of this.props.units) {
-      try {
-        // parse lyrics and show warnings if any
-        warnings = Array.prototype.concat(warnings, this.lyrics.parseLyrics(unit))
+      for (let unit of this.props.units) {
+        let canvas = document.getElementById('canvas.' + unit.id)
+        if (canvas) {
+          try {
+            // parse lyrics and show warnings if any
+            warnings = Array.prototype.concat(warnings, this.lyrics.parseLyrics(unit))
 
-        // parse and render unit score with vextab
-        console.info('Converting unit to vextab score...')
-        let score = SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit)
+            // parse and render unit score with vextab
+            let start = Date.now()
+            console.info('Converting unit to vextab score...')
+            let score = SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit)
+            console.log('Took ' + ((Date.now() - start) / 1000.0) + ' s')
 
-        console.info('Parsing score...')
-        let artist = new Artist(10, 10, W, {scale: 1.0})
-        let vextab = new VexTab(artist)
-        vextab.parse(score)
+            start = Date.now()
+            console.info('Parsing score...')
+            let artist = new Artist(10, 10, W, {scale: 1.0})
+            let vextab = new VexTab(artist)
+            vextab.parse(score)
+            console.log('Took ' + ((Date.now() - start) / 1000.0) + ' s')
 
-        console.info('Rendering score...')
-        artist.render(new Renderer(document.getElementById('canvas.' + unit.id), Renderer.Backends.CANVAS))
+            start = Date.now()
+            console.info('Rendering score...')
+            artist.render(new Renderer(canvas, Renderer.Backends.CANVAS))
+            console.log('Took ' + ((Date.now() - start) / 1000.0) + ' s')
 
-        console.info('Score done!')
-      } catch (e) {
-        if (!(e instanceof LyricsException)) {
-          console.error(e)
+            console.info('Score done!')
+          } catch (e) {
+            if (!(e instanceof LyricsException)) {
+              console.error(e)
+            }
+            errors.push(e.message)
+          }
         }
-        errors.push(e.message)
       }
+
+      console.log(this.props.units.length + ' units took ' + ((Date.now() - t0) / 1000.0) + ' s')
     }
 
-    // update state if any new error or warning during vextabbing
-    if (errors.length > 0 || warnings.length > 0) {
-      this.setState({
-        errors: Array.prototype.concat(this.state.errors, errors),
-        warnings: Array.prototype.concat(this.state.warnings, warnings)
-      })
-    }
+    this.setState({
+      errors: errors,
+      warnings: warnings
+    })
   }
 
   componentDidMount () {
     this.vextab()
-    window.addEventListener('resize', this.updateWindowDimensions)
-  }
-
-  componentWillUnmount () {
-    window.removeEventListener('resize', this.updateWindowDimensions)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -92,7 +98,7 @@ class Score extends Component {
   }
 
   render () {
-    return (<div>
+    return (<div ref={div => { this.rootDiv = div }}>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
       {
@@ -100,6 +106,7 @@ class Score extends Component {
           <canvas key={unit.id} id={'canvas.' + unit.id} />
         </div>)
       }
+      <ReactResizeDetector handleWidth handleHeight onResize={() => { if (this.rootDiv) this.vextab() }} />
     </div>)
   }
 }

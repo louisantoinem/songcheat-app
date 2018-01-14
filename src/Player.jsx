@@ -16,35 +16,37 @@ class PlayerUI extends Component {
   }
 
   getNotes () {
-    // if no unit given, use all units in song
-    let units = this.props.units || this.props.songcheat.structure
+    if (this.props.songcheat) {
+      // if no unit given, use all units in song
+      let units = this.props.units || this.props.songcheat.structure
 
-    // get notes for units
-    let notes = []
-    for (let unit of units) {
-      for (let phrase of unit.part.phrases) {
-        for (let bar of phrase.bars) {
-          for (let note of bar.rhythm.compiledScore) {
-            let chordedNote = JSON.parse(JSON.stringify(note))
-            chordedNote.chord = note.chord || bar.chords[note.placeholderIndex]
-            if (!chordedNote.chord) throw new Error('No chord found for placeholder ' + (note.placeholderIndex + 1))
-            notes.push(chordedNote)
+      // get notes for units
+      let notes = []
+      for (let unit of units) {
+        for (let phrase of unit.part.phrases) {
+          for (let bar of phrase.bars) {
+            for (let note of bar.rhythm.compiledScore) {
+              let chordedNote = JSON.parse(JSON.stringify(note))
+              chordedNote.chord = note.chord || bar.chords[note.placeholderIndex]
+              if (!chordedNote.chord) throw new Error('No chord found for placeholder ' + (note.placeholderIndex + 1))
+              notes.push(chordedNote)
+            }
           }
         }
       }
+
+      // create player on these notes
+      this.player = new Player(this.props.audioCtx, notes, {
+        loop: this.props.rhythm,
+        capo: parseInt(this.props.songcheat.capo, 10),
+        signature: this.props.songcheat.signature,
+        type: this.props.songcheat.wave,
+        onDone: () => this.forceUpdate(),
+        onCountdown: (c) => this.setState({countdown: c || ''})
+      })
+
+      if (this.props.rhythm) this.player.setMode(this.player.MODE_RHYTHM)
     }
-
-    // create player on these notes
-    this.player = new Player(this.props.audioCtx, notes, {
-      loop: this.props.rhythm,
-      capo: parseInt(this.props.songcheat.capo, 10),
-      signature: this.props.songcheat.signature,
-      type: this.props.songcheat.wave,
-      onDone: () => this.forceUpdate(),
-      onCountdown: (c) => this.setState({countdown: c || ''})
-    })
-
-    if (this.props.rhythm) this.player.setMode(this.player.MODE_RHYTHM)
   }
 
   play () {
@@ -82,7 +84,7 @@ class PlayerUI extends Component {
       this.getNotes()
     }
   }
-  
+
   render () {
     return <div className='Player'>
 

@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import ReactResizeDetector from 'react-resize-detector'
 import Popup from 'react-popup'
 import saveAs from 'save-as'
 
@@ -17,13 +18,11 @@ class Editor extends Component {
   componentDidMount () {
     let self = this
 
-    let editor = this.refs.ace_editor.editor
-
     // auto focus
-    editor.focus()
+    this.editor.focus()
 
     // add save command
-    editor.commands.addCommand({
+    this.editor.commands.addCommand({
       name: 'saveAs',
       bindKey: {win: 'Ctrl-s', mac: 'Command-s'},
       exec: function (editor) {
@@ -47,22 +46,25 @@ class Editor extends Component {
 
   render () {
     return (
-      <AceEditor
-        ref='ace_editor'
-        name='source'
-        mode='songcheat'
-        theme='chrome'
-        width={this.props.width}
-        value={this.props.text}
-        maxLines={Infinity}
-        fontSize={14}
-        wrapEnabled
-        onCursorChange={this.props.onCursorChange ? (value) => this.props.onCursorChange(value) : null}
-        onSelectionChange={this.props.onSelectionChange ? (value) => this.props.onSelectionChange(value) : null}
-        onChange={(value) => this.props.onChange(value)}
-        editorProps={{
-          $blockScrolling: Infinity
-        }} />
+      <div>
+        <AceEditor
+          ref={ed => { this.editor = ed ? ed.editor : null }}
+          name='source'
+          mode='songcheat'
+          theme='chrome'
+          width={this.props.width}
+          value={this.props.text}
+          maxLines={Infinity}
+          fontSize={14}
+          wrapEnabled
+          onCursorChange={this.props.onCursorChange ? (value) => this.props.onCursorChange(value) : null}
+          onSelectionChange={this.props.onSelectionChange ? (value) => this.props.onSelectionChange(value) : null}
+          onChange={(value) => this.props.onChange(value)}
+          editorProps={{
+            $blockScrolling: Infinity
+          }} />
+        <ReactResizeDetector handleWidth handleHeight onResize={() => { if (this.editor) this.editor.resize() }} />
+      </div>
     )
   }
 }

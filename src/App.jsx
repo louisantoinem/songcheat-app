@@ -1,28 +1,38 @@
+// react
 import React, { Component } from 'react'
+
+// business modules
+import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
+import template from 'songcheat-core/dist/template.json'
+
+// prime react components
+import { Menu } from 'primereact/components/menu/Menu'
+import { Button } from 'primereact/components/button/Button'
+
+// 3rd party components
 import Popup from 'react-popup'
 import Dropzone from 'react-dropzone'
 import SplitPane from 'react-split-pane'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 
-import './App.css'
-import './Popup.css'
-import './SplitPane.css'
-import 'react-tabs/style/react-tabs.css'
-
 // app components
+import Prompt from './Prompt'
 import Editor from './Editor'
 import General from './General'
 import Chords from './Chords'
 import Rhythm from './Rhythm'
-import Sheet from './Sheet'
-import Prompt from './Prompt'
 import Ascii from './Ascii'
 import Score from './Score'
 import Player from './Player'
 
-// business modules
-import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
-import template from 'songcheat-core/dist/template.json'
+// css
+import './App.css'
+import './Popup.css'
+import './SplitPane.css'
+import 'react-tabs/style/react-tabs.css'
+import 'primereact/resources/primereact.min.css'
+import 'primereact/resources/themes/darkness/theme.css'
+import 'font-awesome/css/font-awesome.css'
 
 class App extends Component {
 
@@ -34,11 +44,9 @@ class App extends Component {
     this.state = {
       source: null,
       songcheat: null,
-      showChordIndex: null,
-      showRhythmIndex: null,
-      showPartIndex: null,
-      showUnitIndex: null,
-      filename: null
+      filename: null,
+      editorPosition: 'hidden',
+      tabIndex: 0
     }
   }
 
@@ -101,61 +109,17 @@ class App extends Component {
     }
   }
 
-  onCursorChange (selection) {
-    try {
-      let cursor = selection.getCursor()
-      let k = this.parser.getPrecedingKeyword(this.state.source, cursor.row + 1)
-      if (k) {
-        console.info('First keyword before cursor: ' + k.keyword)
-        if (this.state.showChordIndex !== k.chordIndex || this.state.showRhythmIndex !== k.rhythmIndex || this.state.showPartIndex !== k.partIndex || this.state.showUnitIndex !== k.unitIndex) {
-          this.setState({showChordIndex: k.chordIndex, showRhythmIndex: k.rhythmIndex, showPartIndex: k.partIndex, showUnitIndex: k.unitIndex})
-        }
-      }
-    } catch (e) {
-      if (!(e instanceof ParserException) && !(e instanceof CompilerException)) {
-        console.error(e)
-      }
-    }
+  onChange (source) {
+    clearTimeout(this.typingTimer)
+    this.typingTimer = setTimeout(() => this.songcheat(source), this.state.tabIndex == 1 ? 500 : 100)
   }
 
-  getEditorPanel () {
-    if (this.state.error) {
-      return <div className='error'>{this.state.error}</div>
-    }
-    if (!this.state.songcheat) {
-      return <div className='error'>No songcheat ?!</div>
-    }
-
-    if (this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
-
-    if (this.state.showChordIndex !== null) {
-      return <Chords chords={this.state.songcheat.chords.slice(this.state.showChordIndex, this.state.showChordIndex + 1)} />
-    }
-    if (this.state.showRhythmIndex !== null) {
-      return <Rhythm songcheat={this.state.songcheat} rhythms={this.state.songcheat.rhythms.slice(this.state.showRhythmIndex, this.state.showRhythmIndex + 1)} />
-    }
-    if (this.state.showPartIndex !== null) {
-      // create a dummy unit with no lyrics for each selected part
-      let units = []
-      for (let part of this.state.songcheat.parts.slice(this.state.showPartIndex, this.state.showPartIndex + 1)) units.push({part: part})
-      return <Sheet songcheat={this.state.songcheat} units={units} />
-    }
-    if (this.state.showUnitIndex !== null) {
-      // show selected units
-      return <Sheet songcheat={this.state.songcheat} units={this.state.songcheat.structure.slice(this.state.showUnitIndex, this.state.showUnitIndex + 1)} />
-    }
-
-    // show general song metadata
-    return <General songcheat={this.state.songcheat} />
-  }
-
-  renderTabs () {
-    return <Tabs>
+  TabsPane () {
+    return <Tabs selectedIndex={this.state.tabIndex} onSelect={tabIndex => this.setState({ tabIndex })} style={{width: '100%'}}>
       <TabList>
         <Tab>Song</Tab>
         <Tab>Score</Tab>
         <Tab>Ascii</Tab>
-        <Tab>Editor</Tab>
       </TabList>
 
       <TabPanel>
@@ -177,27 +141,41 @@ class App extends Component {
         <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
       </TabPanel>
 
-      <TabPanel>
-        <div className='rightPanel'>
-          {this.getEditorPanel()}
-        </div>
-        <Editor width='50%' text={this.state.source} filename={this.state.filename} onCursorChange={(selection) => this.onCursorChange(selection)} onChange={source => this.songcheat(source)} />,
-    </TabPanel>
-
     </Tabs>
   }
 
+  EditorPane () {
+    return <div style={{width: '100%'}}>
+      {this.state.error ? <div className='error'>{this.state.error}</div> : null}
+      {this.state.error || this.state.songcheat ? null : <div className='error'>No songcheat ?!</div>}
+      <Editor width='100%' text={this.state.source} filename={this.state.filename} onChange={source => this.onChange(source)} />,
+    </div>
+  }
+
   render () {
-    return (<div className='App'>
+    // set document title
+    if (this.state.songcheat && this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
+
+    // editor popup menu items
+    var items = []
+    for (let item of ['hidden', 'left', 'right', 'top', 'bottom']) {
+      items.push({ label: Utils.camelCase(item, true), command: () => { this.setState({ editorPosition: item }) } })
+    }
+
+    return (<section className='App'>
 
       <Popup />
 
       <header className='App-header'>
+        <div style={{ float: 'right' }}>
+          <Menu model={items} popup ref={el => this.menu = el} />
+          <Button label='Editor' onClick={(event) => this.menu.toggle(event)} />
+        </div>
         <h1 className='App-title'>SongCheat &nbsp; ♬</h1>
       </header>
 
       <Dropzone
-        style={{}}
+        style={{ flex: 1, display: 'flex', boxSizing: 'border-box', position: 'relative' }} // needed to serve as a container for splitpane
         acceptClassName='overlay green'
         rejectClassName='overlay red'
         disableClick
@@ -205,16 +183,36 @@ class App extends Component {
         accept='text/plain'
         onDrop={this.onDrop.bind(this)} >
 
-        {this.renderTabs()}
+        { this.state.editorPosition === 'hidden' &&
+          this.TabsPane() }
+
+        { this.state.editorPosition === 'left' &&
+          <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
+            {this.EditorPane()}
+            {this.TabsPane()}
+          </SplitPane> }
+
+        { this.state.editorPosition === 'right' &&
+          <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
+            {this.TabsPane()}
+            {this.EditorPane()}
+          </SplitPane> }
+
+        { this.state.editorPosition === 'top' &&
+          <SplitPane split='horizontal' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
+            {this.EditorPane()}
+            {this.TabsPane()}
+          </SplitPane> }
+
+        { this.state.editorPosition === 'bottom' &&
+          <SplitPane split='horizontal' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
+            {this.TabsPane()}
+            {this.EditorPane()}
+          </SplitPane> }
 
       </Dropzone>
 
-      {/* <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} minSize={300} defaultSize={500}>
-        {this.renderTabs()}
-        {this.renderTabs()}
-      </SplitPane> */}
-
-    </div>)
+    </section>)
   }
 }
 export default App
