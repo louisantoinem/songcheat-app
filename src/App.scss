@@ -1,23 +1,9 @@
-.App-logo {
-  animation: App-logo-spin infinite 20s linear;
-  height: 80px;
-}
-
 section.App {
   width: 100vw;
   height: 100vh;
   display: flex;
   flex-direction: column;
   font-family: 'Roboto';
-}
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
 }
 
 .App-header {
@@ -34,6 +20,20 @@ section.App {
 
 .App-title {
   font-size: 1.25em;
+}
+
+.App-logo {
+  animation: App-logo-spin infinite 20s linear;
+  height: 80px;
+}
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 div.error {
@@ -70,10 +70,4 @@ p.warning {
   &.green::after {
     background-color: green;
   }
-}
-
-div.columns2 {
-  display: grid;
-  grid-template-columns: 50% 50%;
-  grid-template-rows: 100%;
 }

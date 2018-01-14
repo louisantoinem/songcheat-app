@@ -12,24 +12,21 @@ import { Button } from 'primereact/components/button/Button'
 // 3rd party components
 import Popup from 'react-popup'
 import Dropzone from 'react-dropzone'
-import SplitPane from 'react-split-pane'
-import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 
 // app components
-import Prompt from './Prompt'
-import Editor from './Editor'
+import Patchwork from './Patchwork'
 import General from './General'
 import Chords from './Chords'
 import Rhythm from './Rhythm'
-import Ascii from './Ascii'
-import Score from './Score'
 import Player from './Player'
+import Score from './Score'
+import Ascii from './Ascii'
+import Editor from './Editor'
+import Prompt from './Prompt'
 
 // css
 import './App.css'
 import './Popup.css'
-import './SplitPane.css'
-import 'react-tabs/style/react-tabs.css'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/darkness/theme.css'
 import 'font-awesome/css/font-awesome.css'
@@ -45,8 +42,7 @@ class App extends Component {
       source: null,
       songcheat: null,
       filename: null,
-      editorPosition: 'hidden',
-      tabIndex: 0
+      editorPosition: 'hidden'
     }
   }
 
@@ -114,47 +110,6 @@ class App extends Component {
     this.typingTimer = setTimeout(() => this.songcheat(source), this.state.tabIndex === 1 ? 500 : 100)
   }
 
-  TabsPane () {
-    return <Tabs selectedIndex={this.state.tabIndex} onSelect={tabIndex => this.setState({ tabIndex })} style={{width: '100%'}}>
-      <TabList>
-        <Tab>Song</Tab>
-        <Tab>Score</Tab>
-        <Tab>Ascii</Tab>
-      </TabList>
-
-      <TabPanel>
-        <div className='columns2'>
-          <div style={{padding: '0 15px'}}>
-            <General songcheat={this.state.songcheat} />
-            <Chords songcheat={this.state.songcheat} />
-          </div>
-          <div>
-            <h3>Tempo: {this.state.songcheat.signature.tempo} bpm</h3>
-            <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
-          </div>
-        </div>
-      </TabPanel>
-
-      <TabPanel>
-        <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-        <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-      </TabPanel>
-
-      <TabPanel>
-        <Ascii songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-      </TabPanel>
-
-    </Tabs>
-  }
-
-  EditorPane () {
-    return <div style={{width: '100%'}}>
-      {this.state.error ? <div className='error'>{this.state.error}</div> : null}
-      {this.state.error || this.state.songcheat ? null : <div className='error'>No songcheat ?!</div>}
-      <Editor width='100%' text={this.state.source} filename={this.state.filename} onChange={source => this.onChange(source)} />,
-    </div>
-  }
-
   render () {
     // set document title
     if (this.state.songcheat && this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
@@ -164,6 +119,13 @@ class App extends Component {
     for (let item of ['hidden', 'left', 'right', 'top', 'bottom']) {
       items.push({ label: Utils.camelCase(item, true), command: () => { this.setState({ editorPosition: item }) } })
     }
+
+    // layout
+    let layout = [0, 1, 2, 3, 4]
+    if (this.state.editorPosition === 'left') layout = { right: layout, left: [5] }
+    else if (this.state.editorPosition === 'right') layout = { left: layout, right: [5] }
+    else if (this.state.editorPosition === 'top') layout = { bottom: layout, top: [5] }
+    else if (this.state.editorPosition === 'bottom') layout = { top: layout, bottom: [5] }
 
     return (<section className='App'>
 
@@ -186,32 +148,21 @@ class App extends Component {
         accept='text/plain'
         onDrop={this.onDrop.bind(this)} >
 
-        { this.state.editorPosition === 'hidden' &&
-          this.TabsPane() }
-
-        { this.state.editorPosition === 'left' &&
-          <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
-            {this.EditorPane()}
-            {this.TabsPane()}
-          </SplitPane> }
-
-        { this.state.editorPosition === 'right' &&
-          <SplitPane split='vertical' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
-            {this.TabsPane()}
-            {this.EditorPane()}
-          </SplitPane> }
-
-        { this.state.editorPosition === 'top' &&
-          <SplitPane split='horizontal' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
-            {this.EditorPane()}
-            {this.TabsPane()}
-          </SplitPane> }
-
-        { this.state.editorPosition === 'bottom' &&
-          <SplitPane split='horizontal' paneStyle={{overflow: 'auto'}} defaultSize='50%'>
-            {this.TabsPane()}
-            {this.EditorPane()}
-          </SplitPane> }
+        <Patchwork layout={layout}>
+          <General label='General' songcheat={this.state.songcheat} />
+          <Chords label='Chords' songcheat={this.state.songcheat} />
+          <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
+          <div label='Score'>
+            <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+            <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+          </div>
+          <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+          <div label='Editor' style={{width: '100%'}}>
+            {this.state.error ? <div className='error'>{this.state.error}</div> : null}
+            {this.state.error || this.state.songcheat ? null : <div className='error'>No songcheat ?!</div>}
+            <Editor width='100%' text={this.state.source} filename={this.state.filename} onChange={source => this.onChange(source)} />,
+          </div>
+        </Patchwork>
 
       </Dropzone>
 

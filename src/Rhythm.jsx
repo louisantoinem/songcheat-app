@@ -46,7 +46,7 @@ class Rhythm extends Component {
 
     for (let rhythm of this.rhythms()) {
       if (rhythm.inline) hasInline = true
-      let canvas = document.getElementById('canvas.' + rhythm.id)
+      let canvas = document.getElementById('canvas.r.' + rhythm.id)
       if (canvas) {
         try {
           // parse and render rhythm score with vextab
@@ -110,18 +110,19 @@ class Rhythm extends Component {
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
 
-      { !this.props.rhythms &&
-        this.state.hasInline && <div className='Options'>
-          <Checkbox onChange={(e) => this.setState({ showInline: e.checked })} checked={this.state.showInline} />
+      {!this.props.rhythms && this.state.hasInline &&
+        <div className='Options'>
+          <Checkbox onChange={(e) => this.setState({showInline: e.checked})} checked={this.state.showInline} />
           <label>Show inline rhythms</label>
         </div>}
 
-      {this.props.rhythms ? '' : <h3>Rhythms used in this song: </h3>}
+      {!this.props.rhythms && this.props.songcheat && <h3>Tempo: {this.props.songcheat.signature.tempo} bpm</h3>}
+      {!this.props.rhythms && <h3>Rhythms used in this song:</h3>}
 
-      {this.rhythms().map(rhythm => rhythm.inline && !this.state.showInline ? '' : <div key={rhythm.id}>
+      {this.rhythms().map(rhythm => (this.state.showInline || !rhythm.inline) && <div key={rhythm.id}>
         <Player audioCtx={this.props.audioCtx} rhythm songcheat={this.props.songcheat} units={[compiler.getRhythmUnit(this.props.songcheat, rhythm)]} />
-        <canvas id={'canvas.' + rhythm.id} />
-      </div>)}
+        <canvas id={'canvas.r.' + rhythm.id} />
+        </div>)}
 
       <ReactResizeDetector handleWidth handleHeight onResize={() => {
         if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {

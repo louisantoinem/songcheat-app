@@ -36,7 +36,7 @@ class Score extends Component {
       this.props.songcheat.barsPerLine = Utils.prevPowerOf2(W / 300)
 
       for (let unit of this.props.units) {
-        let canvas = document.getElementById('canvas.' + unit.id)
+        let canvas = document.getElementById('canvas.u.' + unit.id)
         if (canvas) {
           try {
             // parse lyrics and show warnings if any
@@ -103,7 +103,7 @@ class Score extends Component {
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
       {
         this.props.units.map((unit, index) => <div key={unit.id || index}>
-          <canvas key={unit.id} id={'canvas.' + unit.id} />
+          <canvas key={unit.id} id={'canvas.u.' + unit.id} />
         </div>)
       }
       <ReactResizeDetector handleWidth handleHeight onResize={() => { if (this.rootDiv) this.vextab() }} />
