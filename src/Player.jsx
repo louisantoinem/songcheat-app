@@ -1,14 +1,16 @@
 import React, {Component} from 'react'
+
+// business modules
 import {Utils, Player} from 'songcheat-core'
 
+// css
 import './Player.css'
-// import Select from 'react-select'
-// import 'react-select/dist/react-select.css'
 
 class PlayerUI extends Component {
 
   constructor (props) {
     super(props)
+    console.warn('Getting notes in constructor')
     this.getNotes()
     this.state = {
       countdown: ''
@@ -36,6 +38,7 @@ class PlayerUI extends Component {
       }
 
       // create player on these notes
+      if (this.player) this.player.stop()
       this.player = new Player(this.props.audioCtx, notes, {
         loop: this.props.rhythm,
         capo: parseInt(this.props.songcheat.capo, 10),
@@ -81,6 +84,8 @@ class PlayerUI extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
+      if (prevProps.songcheat !== this.props.songcheat) console.warn('Getting notes because songcheat changed')
+      if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.warn('Getting notes because units changed')
       this.getNotes()
     }
   }

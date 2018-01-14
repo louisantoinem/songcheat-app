@@ -1,13 +1,19 @@
 import React, {Component} from 'react'
-import ReactResizeDetector from 'react-resize-detector'
 
 // business modules
 import {Utils, Compiler, VexTab as SongcheatVexTab} from 'songcheat-core'
 
-import './Rhythm.css'
-import Select from 'react-select'
-import 'react-select/dist/react-select.css'
+// prime react components
+import {Checkbox} from 'primereact/components/checkbox/Checkbox'
+
+// 3rd party components
+import ReactResizeDetector from 'react-resize-detector'
+
+// app components
 import Player from './Player'
+
+// css
+import './Rhythm.css'
 
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
@@ -23,7 +29,7 @@ class Rhythm extends Component {
   constructor (props) {
     super(props)
     this.state = {
-      showInline: 0,
+      showInline: false,
       hasInline: false,
       errors: [],
       warnings: []
@@ -36,6 +42,7 @@ class Rhythm extends Component {
     let hasInline = false
 
     let W = this.rootDiv.offsetWidth - 20
+    this.lastWidth = W
 
     for (let rhythm of this.rhythms()) {
       if (rhythm.inline) hasInline = true
@@ -76,19 +83,19 @@ class Rhythm extends Component {
   }
 
   componentDidMount () {
+    console.warn('Vextabbing because did mount')
     this.vextab()
   }
 
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || prevState.showInline !== this.state.showInline || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
+      if (prevProps.songcheat !== this.props.songcheat) console.warn('Vextabbing because songcheat changed')
+      if (prevState.showInline !== this.state.showInline) console.warn('Vextabbing because showInline changed')
+      if (!Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) console.warn('Vextabbing because rhythms changed')
       this.vextab()
     } else {
       console.info('Not vextabbing since nothing changed')
     }
-  }
-
-  selectChanged (name, selectedOption) {
-    if (selectedOption) this.setState({ [name]: selectedOption.value })
   }
 
   rhythms () {
@@ -103,14 +110,12 @@ class Rhythm extends Component {
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
 
-      {this.props.rhythms || !this.state.hasInline ? '' : <Select
-        value={this.state.showInline}
-        onChange={(selectedOption) => { this.selectChanged('showInline', selectedOption) }}
-        options={[
-          { value: 0, label: 'Hide inline rhyhtms' },
-          { value: 1, label: 'Show inline rhythms' }
-        ]}
-      />}
+      { !this.props.rhythms &&
+        this.state.hasInline && <div className='Options'>
+          <Checkbox onChange={(e) => this.setState({ showInline: e.checked })} checked={this.state.showInline} />
+          <label>Show inline rhythms</label>
+        </div>}
+
       {this.props.rhythms ? '' : <h3>Rhythms used in this song: </h3>}
 
       {this.rhythms().map(rhythm => rhythm.inline && !this.state.showInline ? '' : <div key={rhythm.id}>
@@ -118,7 +123,12 @@ class Rhythm extends Component {
         <canvas id={'canvas.' + rhythm.id} />
       </div>)}
 
-      <ReactResizeDetector handleWidth handleHeight onResize={() => { if (this.rootDiv) this.vextab() }} />
+      <ReactResizeDetector handleWidth handleHeight onResize={() => {
+        if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {
+          console.warn('Vextabbing because resized')
+          this.vextab()
+        }
+      }} />
     </div>)
   }
 }

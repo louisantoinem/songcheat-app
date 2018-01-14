@@ -1,16 +1,20 @@
 import React, {Component} from 'react'
+
+// business modules
 import {Utils, ChordPix} from 'songcheat-core'
 
+// prime react components
+import {Checkbox} from 'primereact/components/checkbox/Checkbox'
+
+// css
 import './Chords.css'
-import Select from 'react-select'
-import 'react-select/dist/react-select.css'
 
 class Chords extends Component {
 
   constructor (props) {
     super(props)
     this.state = {
-      showInline: 0,
+      showInline: false,
       hasInline: false
     }
   }
@@ -21,10 +25,6 @@ class Chords extends Component {
     } catch (e) {
       return <p className='error' style={{ margin: '12px' }}>{e.message}</p>
     }
-  }
-
-  selectChanged (name, selectedOption) {
-    if (selectedOption) this.setState({ [name]: selectedOption.value })
   }
 
   chords () {
@@ -51,14 +51,12 @@ class Chords extends Component {
   render () {
     return (<div className='Chords'>
 
-      {this.props.chords || !this.state.hasInline ? '' : <Select
-        value={this.state.showInline}
-        onChange={(selectedOption) => { this.selectChanged('showInline', selectedOption) }}
-        options={[
-        { value: 0, label: 'Hide inline chords' },
-        { value: 1, label: 'Show inline chords' }
-        ]}
-      />}
+      { !this.props.chords &&
+      this.state.hasInline && <div className='Options'>
+        <Checkbox onChange={(e) => this.setState({ showInline: e.checked })} checked={this.state.showInline} />
+        <label>Show inline chords</label>
+      </div>}
+
       {this.props.chords ? '' : <h3>Chords used in this song: </h3>}
 
       {

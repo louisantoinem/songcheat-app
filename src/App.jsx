@@ -111,7 +111,7 @@ class App extends Component {
 
   onChange (source) {
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(() => this.songcheat(source), this.state.tabIndex == 1 ? 500 : 100)
+    this.typingTimer = setTimeout(() => this.songcheat(source), this.state.tabIndex === 1 ? 500 : 100)
   }
 
   TabsPane () {
@@ -128,7 +128,10 @@ class App extends Component {
             <General songcheat={this.state.songcheat} />
             <Chords songcheat={this.state.songcheat} />
           </div>
-          <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
+          <div>
+            <h3>Tempo: {this.state.songcheat.signature.tempo} bpm</h3>
+            <Rhythm audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
+          </div>
         </div>
       </TabPanel>
 

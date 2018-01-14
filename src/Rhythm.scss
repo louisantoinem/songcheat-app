@@ -1,7 +1,10 @@
 .Rhythm {
-  > div.Select {
+  > div.Options {
     float: right;
-    margin: 0 20%;
-    width: 250px;
+    margin: 0 20px;
+
+    label {
+      margin-left: 5px;
+    }
   }
 }

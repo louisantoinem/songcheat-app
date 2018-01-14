@@ -1,5 +1,5 @@
 .Chords {
-  > div:not(.Select) {
+  > div:not(.Options) {
     display: inline-block;
     vertical-align: top;
 
@@ -17,9 +17,12 @@
     }
   }
 
-  > div.Select {
+  > div.Options {
     float: right;
-    margin: 0 10px;
-    width: 250px;
+    margin: 0 20px;
+
+    label {
+      margin-left: 5px;
+    }
   }
 }
