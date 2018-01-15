@@ -26,6 +26,28 @@ class Patchwork extends Component {
   componentWillMount () {
   }
 
+  isVisible (componentIndex) {
+    console.log('Component ' + componentIndex + ' is visible ?')
+    return this.props.layout ? this.isVisibleRec(this.props.layout, componentIndex) : false
+  }
+
+  isVisibleRec (node, componentIndex) {
+    // leave node
+    if (node instanceof Array) {
+      let componentIndices = node
+      let selectedTabIndex = this.state.tabIndex.get(List(node)) || 0
+      console.log('Component ' + componentIndices[selectedTabIndex] + ' is visible !')
+      if (componentIndices[selectedTabIndex] === componentIndex) return true
+      return false
+    }
+
+    // split node
+    if (this.isVisibleRec(node.left || node.top, componentIndex)) return true
+    if (this.isVisibleRec(node.right || node.bottom, componentIndex)) return true
+
+    return false
+  }
+
   renderLeave (componentIndices) {
     let tabs = []
     let tabPanels = []

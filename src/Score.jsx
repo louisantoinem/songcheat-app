@@ -29,14 +29,13 @@ class Score extends Component {
     }
   }
 
-  vextab (showLoadingMessage) {
-    // first change state.loading to true
-    // when done (async), start a vextab in next event loop
-    // when done (sync), change state.loading to false in next event loop
-    this.setState({loading: typeof showLoadingMessage === 'undefined' ? true : showLoadingMessage}, () => setTimeout(() => {
+  vextab () {
+    // start a vextab in next event loop so that component can be displayed already (with loading message)
+    // when done, change state.loading to false in next event loop
+    setTimeout(() => {
       this._vextab()
       setTimeout(() => this.setState({loading: false}), 0)
-    }, 0))
+    }, 0)
   }
 
   _vextab () {
@@ -95,7 +94,7 @@ class Score extends Component {
 
   onResize () {
     clearTimeout(this.resizeTimer)
-    this.resizeTimer = setTimeout(() => this.vextab(false), 50)
+    this.resizeTimer = setTimeout(() => this.vextab(), 50)
   }
 
   componentDidMount () {
@@ -103,9 +102,11 @@ class Score extends Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.songcheat !== this.props.songcheat) {
-      this.lyrics = new Lyrics(nextProps.songcheat, 0)
-    }
+    // show loading message again when new file dropped
+    if (nextProps.filename !== this.props.filename) this.setState({loading: true})
+
+    // recreate Lyrics API when songcheat changed
+    if (nextProps.songcheat !== this.props.songcheat) this.lyrics = new Lyrics(nextProps.songcheat, 0)
   }
 
   componentDidUpdate (prevProps, prevState) {

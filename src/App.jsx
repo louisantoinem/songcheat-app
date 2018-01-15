@@ -107,7 +107,7 @@ class App extends Component {
 
   onChange (source) {
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(() => this.songcheat(source), this.state.tabIndex === 1 ? 500 : 100)
+    this.typingTimer = setTimeout(() => this.songcheat(source), this.patchwork && this.patchwork.isVisible(3) ? 500 : 100)
   }
 
   render () {
@@ -121,11 +121,12 @@ class App extends Component {
     }
 
     // layout
-    let layout = [0, 1, 2, 3, 4]
-    if (this.state.editorPosition === 'left') layout = { right: layout, left: [5] }
-    else if (this.state.editorPosition === 'right') layout = { left: layout, right: [5] }
-    else if (this.state.editorPosition === 'top') layout = { bottom: layout, top: [5] }
-    else if (this.state.editorPosition === 'bottom') layout = { top: layout, bottom: [5] }
+    let tabs = [0, 1, 2, 3, 4]
+    let layout = tabs // default
+    if (this.state.editorPosition === 'left') layout = { right: tabs, left: [5] }
+    else if (this.state.editorPosition === 'right') layout = { left: tabs, right: [5] }
+    else if (this.state.editorPosition === 'top') layout = { bottom: tabs, top: [5] }
+    else if (this.state.editorPosition === 'bottom') layout = { top: tabs, bottom: [5] }
 
     return (<section className='App'>
 
@@ -148,13 +149,13 @@ class App extends Component {
         accept='text/plain'
         onDrop={this.onDrop.bind(this)} >
 
-        <Patchwork layout={layout}>
+        <Patchwork layout={layout} ref={p => { this.patchwork = p }}>
           <General label='General' songcheat={this.state.songcheat} />
           <Chords label='Chords' songcheat={this.state.songcheat} />
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
           <div label='Score'>
             <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-            <Score songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+            <Score filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           </div>
           <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <div label='Editor' style={{width: '100%'}}>
