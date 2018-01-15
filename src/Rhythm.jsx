@@ -41,36 +41,38 @@ class Rhythm extends Component {
     let warnings = []
     let hasInline = false
 
-    let W = this.rootDiv.offsetWidth - 20
-    this.lastWidth = W
+    if (this.props.songcheat && this.rootDiv) {
+      let W = this.rootDiv.offsetWidth - 20
+      this.lastWidth = W
 
-    for (let rhythm of this.rhythms()) {
-      if (rhythm.inline) hasInline = true
-      let canvas = document.getElementById('canvas.r.' + rhythm.id)
-      if (canvas) {
-        try {
+      for (let rhythm of this.rhythms()) {
+        if (rhythm.inline) hasInline = true
+        let canvas = document.getElementById('canvas.r.' + rhythm.id)
+        if (canvas) {
+          try {
           // parse and render rhythm score with vextab
-          console.info('Converting rhythm to vextab score...')
-          let score = SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm)
+            console.info('Converting rhythm to vextab score...')
+            let score = SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm)
 
           // register warning if not a whole number of bars
-          if (rhythm.duration % this.props.songcheat.barDuration) {
-            let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + Math.floor(rhythm.duration / this.props.songcheat.barDuration) + ' bar(s) and ' + Utils.durationcodes(rhythm.duration % this.props.songcheat.barDuration) + '. A rhythm unit should be equivalent to a whole number of bars.'
-            warnings.push(warning)
+            if (rhythm.duration % this.props.songcheat.barDuration) {
+              let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + Math.floor(rhythm.duration / this.props.songcheat.barDuration) + ' bar(s) and ' + Utils.durationcodes(rhythm.duration % this.props.songcheat.barDuration) + '. A rhythm unit should be equivalent to a whole number of bars.'
+              warnings.push(warning)
+            }
+
+            console.info('Parsing score...')
+            let artist = new Artist(10, 10, W, {scale: 1.0})
+            let vextab = new VexTab(artist)
+            vextab.parse(score)
+
+            console.info('Rendering score...')
+            artist.render(new Renderer(canvas, Renderer.Backends.CANVAS))
+
+            console.info('Score done!')
+          } catch (e) {
+            console.error(e)
+            errors.push(e.message)
           }
-
-          console.info('Parsing score...')
-          let artist = new Artist(10, 10, W, {scale: 1.0})
-          let vextab = new VexTab(artist)
-          vextab.parse(score)
-
-          console.info('Rendering score...')
-          artist.render(new Renderer(canvas, Renderer.Backends.CANVAS))
-
-          console.info('Score done!')
-        } catch (e) {
-          console.error(e)
-          errors.push(e.message)
         }
       }
     }
