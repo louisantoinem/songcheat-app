@@ -145,16 +145,16 @@ class App extends Component {
         onDrop={this.onDrop.bind(this)} >
 
         <Patchwork
+          ref={p => { this.patchwork = p }}
           name={this.state.editMode ? 'Edit' : 'View'}
           // defaultLayout={this.state.editMode ? {left: [0, 1, 2, 3, 4], right: [5]} : [0, 1, 2, 3, 4]}
           // test default on big screen
           defaultLayout={this.state.editMode ? {left: [5], right: {'bottom': {right: [1], left: {right: [2], left: [0]}}, 'top': {right: [4], left: [3]}}} : {right: [3, 4], left: {right: [1], left: {'bottom': [2], 'top': [0]}}}}
           editable={this.state.editLayout}
-          onChange={() => {
+          onChange={() => setTimeout(() => {
             if (!this.patchwork) console.error('Patchwork triggered onChange before we got our ref: cannot set showReset')
             else this.setState({ showReset: !this.patchwork.isDefaultLayout() })
-          }}
-          ref={p => { this.patchwork = p }}>
+          }, 0)}>
           <General label='General' songcheat={this.state.songcheat} />
           <Chords label='Chords' songcheat={this.state.songcheat} />
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
