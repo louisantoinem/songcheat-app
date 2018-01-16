@@ -13,8 +13,13 @@ class Chords extends Component {
 
   constructor (props) {
     super(props)
+
+    // get stored state if any
+    let showInline = localStorage.getItem('Chords.state.showInline') || false
+    if (showInline) try { showInline = JSON.parse(showInline) } catch (e) { showInline = false }
+
     this.state = {
-      showInline: false,
+      showInline: showInline,
       hasInline: false
     }
   }
@@ -45,6 +50,11 @@ class Chords extends Component {
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.chords, this.props.chords)) {
       this.updateHasInline()
+    }
+
+    // persist state
+    if (prevState.showInline !== this.state.showInline) {
+      localStorage.setItem('Chords.state.showInline', JSON.stringify(this.state.showInline))
     }
   }
 

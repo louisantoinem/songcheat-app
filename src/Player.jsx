@@ -10,7 +10,7 @@ class PlayerUI extends Component {
 
   constructor (props) {
     super(props)
-    console.warn('Getting notes in constructor')
+    console.log('Player: getting notes in constructor')
     this.getNotes()
     this.state = {
       countdown: ''
@@ -84,8 +84,8 @@ class PlayerUI extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
-      if (prevProps.songcheat !== this.props.songcheat) console.warn('Getting notes because songcheat changed')
-      if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.warn('Getting notes because units changed')
+      if (prevProps.songcheat !== this.props.songcheat) console.log('Player: getting notes because songcheat changed')
+      if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.log('Player: getting notes because units changed')
       this.getNotes()
     }
   }

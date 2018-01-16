@@ -6,7 +6,6 @@ import { Utils, Parser, ParserException, Compiler, CompilerException } from 'son
 import template from 'songcheat-core/dist/template.json'
 
 // prime react components
-import { Menu } from 'primereact/components/menu/Menu'
 import { Button } from 'primereact/components/button/Button'
 
 // 3rd party components
@@ -28,7 +27,7 @@ import Prompt from './Prompt'
 import './App.css'
 import './Popup.css'
 import 'primereact/resources/primereact.min.css'
-import 'primereact/resources/themes/darkness/theme.css'
+import 'primereact/resources/themes/omega/theme.css'
 import 'font-awesome/css/font-awesome.css'
 
 class App extends Component {
@@ -42,7 +41,7 @@ class App extends Component {
       source: null,
       songcheat: null,
       filename: null,
-      editorPosition: 'hidden'
+      editMode: false
     }
   }
 
@@ -90,6 +89,10 @@ class App extends Component {
     })
   }
 
+  componentDidMount () {
+    this.setState({ showReset: !this.patchwork.isDefaultLayout() })
+  }
+
   songcheat (source) {
     try {
       // parse and compile songcheat source
@@ -98,7 +101,7 @@ class App extends Component {
       songcheat = this.compiler.compile(songcheat)
       this.setState({source: source, songcheat: songcheat, error: null})
     } catch (e) {
-      this.setState({source: source, songcheat: null, error: e.toString()})
+      this.setState({source: source, error: e.toString()})
       if (!(e instanceof ParserException) && !(e instanceof CompilerException)) {
         console.error(e)
       }
@@ -114,31 +117,23 @@ class App extends Component {
     // set document title
     if (this.state.songcheat && this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
 
-    // editor popup menu items
-    var items = []
-    for (let item of ['hidden', 'left', 'right', 'top', 'bottom']) {
-      items.push({ label: Utils.camelCase(item, true), command: () => { this.setState({ editorPosition: item }) } })
-    }
-
-    // layout
-    let tabs = [0, 1, 2, 3, 4]
-    let layout = tabs // default
-    if (this.state.editorPosition === 'left') layout = { right: tabs, left: [5] }
-    else if (this.state.editorPosition === 'right') layout = { left: tabs, right: [5] }
-    else if (this.state.editorPosition === 'top') layout = { bottom: tabs, top: [5] }
-    else if (this.state.editorPosition === 'bottom') layout = { top: tabs, bottom: [5] }
-
     return (<section className='App'>
 
       <Popup />
 
-      <header className='App-header'>
-        <div style={{ float: 'right' }}>
-          <Menu model={items} popup ref={el => this.menu = el} />
-          <Button label='Editor' onClick={(event) => this.menu.toggle(event)} />
+      <header className='App-header' style={{position: 'relative'}}>
+        <div style={{ position: 'absolute', left: '10px' }}>
+          <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={(event) => { this.setState({editMode: !this.state.editMode}) }} />
+        </div>
+        <div style={{ position: 'absolute', right: '10px' }}>
+          {this.state.editLayout && this.state.showReset && <Button label='Reset layout' onClick={(event) => this.patchwork.resetLayout()} />}
+          <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={(event) => { this.setState({editLayout: !this.state.editLayout}) }} />
         </div>
         <h1 className='App-title'>SongCheat &nbsp; ♬</h1>
       </header>
+
+      {this.state.error ? <div className='edit_error'>{this.state.error}</div> : null}
+      {this.state.error || this.state.songcheat ? null : <div className='edit_error'>No songcheat ?!</div>}
 
       <Dropzone
         style={{ flex: 1, display: 'flex', boxSizing: 'border-box', position: 'relative' }} // needed to serve as a container for splitpane
@@ -149,20 +144,28 @@ class App extends Component {
         accept='text/plain'
         onDrop={this.onDrop.bind(this)} >
 
-        <Patchwork layout={layout} ref={p => { this.patchwork = p }}>
+        <Patchwork
+          name={this.state.editMode ? 'Edit' : 'View'}
+          // defaultLayout={this.state.editMode ? {left: [0, 1, 2, 3, 4], right: [5]} : [0, 1, 2, 3, 4]}
+          // test default on big screen
+          defaultLayout={this.state.editMode ? {left: [5], right: {'bottom': {right: [1], left: {right: [2], left: [0]}}, 'top': {right: [4], left: [3]}}} : {right: [3, 4], left: {right: [1], left: {'bottom': [2], 'top': [0]}}}}
+          editable={this.state.editLayout}
+          onChange={() => {
+            if (!this.patchwork) console.error('Patchwork triggered onChange before we got our ref: cannot set showReset')
+            else this.setState({ showReset: !this.patchwork.isDefaultLayout() })
+          }}
+          ref={p => { this.patchwork = p }}>
           <General label='General' songcheat={this.state.songcheat} />
           <Chords label='Chords' songcheat={this.state.songcheat} />
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
+          <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <div label='Score'>
             <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
             <Score filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           </div>
-          <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          <div label='Editor' style={{width: '100%'}}>
-            {this.state.error ? <div className='error'>{this.state.error}</div> : null}
-            {this.state.error || this.state.songcheat ? null : <div className='error'>No songcheat ?!</div>}
+          {this.state.editMode && <div label='Editor' style={{width: '100%'}}>
             <Editor width='100%' text={this.state.source} filename={this.state.filename} onChange={source => this.onChange(source)} />,
-          </div>
+          </div>}
         </Patchwork>
 
       </Dropzone>

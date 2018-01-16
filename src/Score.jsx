@@ -94,7 +94,7 @@ class Score extends Component {
 
   onResize () {
     clearTimeout(this.resizeTimer)
-    this.resizeTimer = setTimeout(() => this.vextab(), 50)
+    this.resizeTimer = setTimeout(() => this.vextab(), 150)
   }
 
   componentDidMount () {

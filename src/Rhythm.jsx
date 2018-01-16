@@ -28,8 +28,13 @@ class Rhythm extends Component {
 
   constructor (props) {
     super(props)
+
+    // get stored state if any
+    let showInline = localStorage.getItem('Rhythm.state.showInline') || false
+    if (showInline) try { showInline = JSON.parse(showInline) } catch (e) { showInline = false }
+
     this.state = {
-      showInline: false,
+      showInline: showInline,
       hasInline: false,
       errors: [],
       warnings: []
@@ -85,7 +90,6 @@ class Rhythm extends Component {
   }
 
   componentDidMount () {
-    console.warn('Vextabbing because did mount')
     this.vextab()
   }
 
@@ -97,6 +101,11 @@ class Rhythm extends Component {
       this.vextab()
     } else {
       console.info('Not vextabbing since nothing changed')
+    }
+
+    // persist state
+    if (prevState.showInline !== this.state.showInline) {
+      localStorage.setItem('Rhythm.state.showInline', JSON.stringify(this.state.showInline))
     }
   }
 
