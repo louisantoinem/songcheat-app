@@ -37,6 +37,7 @@ class App extends Component {
     this.parser = new Parser()
     this.compiler = new Compiler(0)
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)()
+    this.setPatchworkRef = this.setPatchworkRef.bind(this)
     this.state = {
       source: null,
       songcheat: null,
@@ -113,6 +114,10 @@ class App extends Component {
     this.typingTimer = setTimeout(() => this.songcheat(source), this.patchwork && this.patchwork.isVisible(3) ? 500 : 100)
   }
 
+  setPatchworkRef (p) {
+    this.patchwork = p
+  }
+
   render () {
     // set document title
     if (this.state.songcheat && this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
@@ -145,16 +150,18 @@ class App extends Component {
         onDrop={this.onDrop.bind(this)} >
 
         <Patchwork
-          ref={p => { this.patchwork = p }}
+          ref={this.setPatchworkRef}
           name={this.state.editMode ? 'Edit' : 'View'}
           // defaultLayout={this.state.editMode ? {left: [0, 1, 2, 3, 4], right: [5]} : [0, 1, 2, 3, 4]}
           // test default on big screen
           defaultLayout={this.state.editMode ? {left: [5], right: {'bottom': {right: [1], left: {right: [2], left: [0]}}, 'top': {right: [4], left: [3]}}} : {right: [3, 4], left: {right: [1], left: {'bottom': [2], 'top': [0]}}}}
           editable={this.state.editLayout}
-          onChange={() => setTimeout(() => {
-            if (!this.patchwork) console.error('Patchwork triggered onChange before we got our ref: cannot set showReset')
-            else this.setState({ showReset: !this.patchwork.isDefaultLayout() })
-          }, 0)}>
+          onChange={() => {
+            if (!this.patchwork) throw new Error('Patchwork triggered onChange before we got our ref: cannot set showReset')
+            let showReset = !this.patchwork.isDefaultLayout()
+            console.log('Updating showReset to ' + showReset + ' after layout changed')
+            this.setState({ showReset })
+          }}>
           <General label='General' songcheat={this.state.songcheat} />
           <Chords label='Chords' songcheat={this.state.songcheat} />
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} />

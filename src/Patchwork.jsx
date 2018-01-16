@@ -48,6 +48,12 @@ class Patchwork extends Component {
 
   _setLayout (layout, clear) {
     this.setState({layout: layout}, () => {
+      // warn parent
+      this.props.onChange()
+
+      // persist layout
+      localStorage.setItem('Patchwork.' + this.props.name + '.state.layout.root', JSON.stringify(this.state.layout.root))
+
       // this ensures SplitPanes are unmounted and re-rendered with their defaultSize
       if (clear) this.setState({ clear: true }, () => this.setState({ clear: false }))
     })
@@ -66,14 +72,6 @@ class Patchwork extends Component {
       else index++
     }
     this._setLayout(new Layout(this.props.defaultLayout), true)
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    // persist layout
-    if (!prevState.layout.equals(this.state.layout)) {
-      this.props.onChange()
-      localStorage.setItem('Patchwork.' + this.props.name + '.state.layout.root', JSON.stringify(this.state.layout.root))
-    }
   }
 
   componentWillReceiveProps (nextProps) {
