@@ -91,7 +91,7 @@ class PlayerUI extends Component {
   }
 
   render () {
-    return <div className='Player'>
+    return <div className={'Player ' + (this.props.className || '')}>
 
       <span className='countdown'>{this.state.countdown}</span>
 

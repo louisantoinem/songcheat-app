@@ -16,6 +16,7 @@ import Dropzone from 'react-dropzone'
 // app components
 import Patchwork from './Patchwork'
 import Layout from './Layout'
+import Player from './Player'
 import General from './General'
 import Chords from './Chords'
 import Rhythm from './Rhythm'
@@ -183,10 +184,9 @@ class App extends Component {
       <Popup />
 
       <header className='App-header' style={{position: 'relative'}}>
-        <div style={{ position: 'absolute', left: '10px' }}>
-          <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
-        </div>
+        <Player className='Global' audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         <div style={{ position: 'absolute', right: '10px' }}>
+          <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
           {this.state.editLayout && !this.defaultLayout(this.state.editMode).equals(this.state.layout) && <Button label='Reset layout' onClick={() => this.resetLayout()} />}
           <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={() => this.setState({editLayout: !this.state.editLayout})} />
         </div>

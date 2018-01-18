@@ -6,9 +6,6 @@ import {Utils, VexTab as SongcheatVexTab, Lyrics, LyricsException} from 'songche
 // 3rd party components
 import ReactResizeDetector from 'react-resize-detector'
 
-// app components
-import Player from './Player'
-
 // css
 import './Score.css'
 
@@ -144,7 +141,6 @@ class Score extends Component {
 
   render () {
     return (<div className='Score' ref={div => { this.rootDiv = div }}>
-      <Player audioCtx={this.props.audioCtx} rhythm={false} songcheat={this.props.songcheat} units={this.props.songcheat ? this.props.songcheat.structure : []} />
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
