@@ -3,8 +3,12 @@ import React, {Component} from 'react'
 // business modules
 import {Utils, Lyrics, LyricsException} from 'songcheat-core'
 
-import './Ascii.css'
+// 3rd party components
+import {Checkbox} from 'primereact/components/checkbox/Checkbox'
 import Select from 'react-select'
+
+// css
+import './Ascii.css'
 import 'react-select/dist/react-select.css'
 
 class Ascii extends Component {
@@ -24,6 +28,7 @@ class Ascii extends Component {
     let errors = []
     let warnings = []
     let texts = []
+    let texts_structure = []
 
     for (let unit of units) {
       try {
@@ -34,6 +39,7 @@ class Ascii extends Component {
 
         // get lyrics text
         texts.push(this.lyrics.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, 'rhythm', this.state.maxConsecutiveSpaces !== 1))
+        texts_structure.push(this.lyrics.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, 'rhythm', this.state.maxConsecutiveSpaces !== 1))
       } catch (e) {
         if (!(e instanceof LyricsException)) {
           console.error(e)
@@ -41,7 +47,7 @@ class Ascii extends Component {
         errors.push(e.message)
       }
     }
-    this.setState({errors: errors, warnings: warnings, texts: texts})
+    this.setState({errors, warnings, texts, texts_structure})
   }
 
   componentWillMount () {
@@ -57,8 +63,8 @@ class Ascii extends Component {
     }
   }
 
-  selectChanged (name, selectedOption) {
-    if (selectedOption) this.setState({ [name]: selectedOption.value }, () => { this.parseLyrics(this.props.units) })
+  optionChanged (name, value) {
+    this.setState({ [name]: value }, () => { this.parseLyrics(this.props.units) })
   }
 
   render () {
@@ -67,7 +73,7 @@ class Ascii extends Component {
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
       <Select
         value={this.state.maxConsecutiveSpaces}
-        onChange={(selectedOption) => { this.selectChanged('maxConsecutiveSpaces', selectedOption) }}
+        onChange={(selectedOption) => { if (selectedOption) this.optionChanged('maxConsecutiveSpaces', selectedOption.value) }}
         options={[
           { value: 1, label: 'Compact' },
           { value: 0, label: 'Respect chord durations' }
@@ -75,19 +81,23 @@ class Ascii extends Component {
       />
       <Select
         value={this.state.split}
-        onChange={(selectedOption) => { this.selectChanged('split', selectedOption) }}
+        onChange={(selectedOption) => { if (selectedOption) this.optionChanged('split', selectedOption.value) }}
         options={[
-          { value: 0, label: 'Split as entered' },
+          { value: 0, label: this.state.structure ? 'One line per part' : 'Split as entered' },
           { value: 1, label: 'One bar par line' },
           { value: 2, label: 'Two bars par line' },
           { value: 4, label: 'Four bars par line' }
         ]}
       />
-    <div className='Lyrics' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 ? 275 : 550)) + 'px' }}>
+
+      <Checkbox onChange={(e) => this.optionChanged('structure', e.checked)} checked={this.state.structure} />
+      <label>Stucture only</label>
+
+      <div className='Lyrics' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 ? 275 : 550)) + 'px' }}>
         {
         this.props.units.map((unit, index) => <div key={unit.id} style={{color: unit.part.color}}>
           <p>[{unit.name}]</p>
-          <div>{this.state.texts[index]}</div>
+          <div>{this.state.structure ? this.state.texts_structure[index] : this.state.texts[index]}</div>
         </div>)
         }
       </div>

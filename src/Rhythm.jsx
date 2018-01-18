@@ -48,11 +48,11 @@ class Rhythm extends Component {
         let canvas = document.getElementById('canvas.r.' + rhythm.id)
         if (canvas) {
           try {
-          // parse and render rhythm score with vextab
+            // parse and render rhythm score with vextab
             console.info('Converting rhythm to vextab score...')
             let score = SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm)
 
-          // register warning if not a whole number of bars
+            // register warning if not a whole number of bars
             if (rhythm.duration % this.props.songcheat.barDuration) {
               let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + Math.floor(rhythm.duration / this.props.songcheat.barDuration) + ' bar(s) and ' + Utils.durationcodes(rhythm.duration % this.props.songcheat.barDuration) + '. A rhythm unit should be equivalent to a whole number of bars.'
               warnings.push(warning)
