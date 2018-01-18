@@ -67,11 +67,6 @@ class PlayerUI extends Component {
     this.forceUpdate()
   }
 
-  rewind () {
-    this.player.rewind()
-    this.forceUpdate()
-  }
-
   tempo (speedpct) {
     this.player.speed(parseInt(speedpct, 10))
     this.forceUpdate()
@@ -95,6 +90,13 @@ class PlayerUI extends Component {
 
       <span className='countdown'>{this.state.countdown}</span>
 
+      <div className='controls'>
+        {this.player.stopped || this.player.paused ? <a onClick={() => this.play()}>&#9658;</a> : null}
+        {this.player.stopped || this.player.paused ? null : <a onClick={() => this.pause()}>&#10074;&#10074;</a>}
+        {this.player.stopped ? null : <a onClick={() => this.stop()}>&#9724;</a>}
+        {this.player.stopped ? null : <a onClick={() => this.player.rewind()}>&#9668;</a>}
+      </div>
+
       {
         this.player.stopped ? null : <div className='options'>
 
@@ -112,13 +114,6 @@ class PlayerUI extends Component {
 
         </div>
       }
-
-      <div className='controls'>
-        {this.player.stopped || this.player.paused ? <a onClick={() => this.play()}>&#9658;</a> : null}
-        {this.player.stopped || this.player.paused ? null : <a onClick={() => this.pause()}>&#10074;&#10074;</a>}
-        {this.player.stopped ? null : <a onClick={() => this.stop()}>&#9724;</a>}
-        {this.player.stopped ? null : <a onClick={() => this.rewind()}>&#9668;</a>}
-      </div>
 
     </div>
   }

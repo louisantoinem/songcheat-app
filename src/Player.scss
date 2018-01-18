@@ -1,4 +1,5 @@
 .Player {
+  position: relative;
   max-width: 640px;
   text-align: left;
 
@@ -26,7 +27,16 @@
   }
 
   .options {
-    float: right;
+    position: absolute;
+    left: 0;
+    top: 22px;
+    width: 300px;
+    color: white;
+    background-color: black;
+    padding: 0 10px 5px;
+    border: 2px solid white;
+    opacity: 0.9;
+    font-size: 0.9em;
 
     > div {
       margin-top: 10px;
