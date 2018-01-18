@@ -164,8 +164,6 @@ class App extends Component {
 
   /* Returns default layout for given mode */
   defaultLayout (editMode) {
-    // test default on big screen
-    // return new Layout(editMode ? {left: [5], right: {bottom: {right: [1], left: {right: [2], left: [0]}}, top: {right: [4], left: [3]}}} : {right: [3, 4], left: {right: [1], left: {'bottom': [2], 'top': [0]}}})
     return new Layout(editMode ? {right: [0, 1, 2, 3, 4], left: [5]} : { left: [0, 1, 2, 3], right: [4]})
   }
 
@@ -217,9 +215,7 @@ class App extends Component {
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <Score label='Score' audioCtx={this.audioCtx} filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          {this.state.editMode && <div label='Editor' style={{width: '100%'}}>
-            <Editor width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.setState({filename})} onChange={source => this.onChange(source)} />,
-          </div>}
+          {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.setState({filename})} onChange={source => this.onChange(source)} />}
         </Patchwork>
 
       </Dropzone>
