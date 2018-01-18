@@ -1,5 +1,6 @@
 // react
 import React, { Component } from 'react'
+import { Map } from 'immutable'
 
 // business modules
 import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
@@ -14,10 +15,10 @@ import Dropzone from 'react-dropzone'
 
 // app components
 import Patchwork from './Patchwork'
+import Layout from './Layout'
 import General from './General'
 import Chords from './Chords'
 import Rhythm from './Rhythm'
-import Player from './Player'
 import Score from './Score'
 import Ascii from './Ascii'
 import Editor from './Editor'
@@ -37,23 +38,39 @@ class App extends Component {
     this.parser = new Parser()
     this.compiler = new Compiler(0)
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)()
-    this.setPatchworkRef = this.setPatchworkRef.bind(this)
+
+    // load stored layouts if any or get default ones
+    let layoutView = localStorage.getItem(this._key(false))
+    let layoutEdit = localStorage.getItem(this._key(true))
+    let layouts = {
+      false: layoutView ? Layout.fromString(layoutView) : this.defaultLayout(false),
+      true: layoutEdit ? Layout.fromString(layoutEdit) : this.defaultLayout(true)
+    }
+
+    // load stored settings if any
+    let settings = localStorage.getItem('SongCheat.App.Settings')
+    settings = settings ? JSON.parse(settings) : {}
+
     this.state = {
       source: null,
       songcheat: null,
       filename: null,
-      editMode: false
+      editMode: false,
+      layouts: layouts,
+      layout: layouts[false],
+      settings: Map(settings)
     }
+  }
+
+  _key (editMode) {
+    return 'SongCheat.App.Layout.' + (editMode ? 'Edit' : 'View')
   }
 
   onDrop (acceptedFiles, rejectedFiles) {
     let self = this
     acceptedFiles.forEach(file => {
       const reader = new FileReader()
-      reader.onload = () => {
-        self.setState({ filename: file.name })
-        self.songcheat(reader.result)
-      }
+      reader.onload = () => self.songcheat(reader.result, file.name)
       reader.onabort = () => console.log('file reading was aborted')
       reader.onerror = () => console.log('file reading has failed')
       reader.readAsText(file)
@@ -90,17 +107,13 @@ class App extends Component {
     })
   }
 
-  componentDidMount () {
-    this.setState({ showReset: !this.patchwork.isDefaultLayout() })
-  }
-
-  songcheat (source) {
+  songcheat (source, filename) {
     try {
       // parse and compile songcheat source
       source = Utils.replaceComposedChars(source)
       let songcheat = this.parser.parse(source)
       songcheat = this.compiler.compile(songcheat)
-      this.setState({source: source, songcheat: songcheat, error: null})
+      this.setState({source: source, songcheat: songcheat, filename: filename || this.state.filename, error: null})
     } catch (e) {
       this.setState({source: source, error: e.toString()})
       if (!(e instanceof ParserException) && !(e instanceof CompilerException)) {
@@ -111,11 +124,56 @@ class App extends Component {
 
   onChange (source) {
     clearTimeout(this.typingTimer)
-    this.typingTimer = setTimeout(() => this.songcheat(source), this.patchwork && this.patchwork.isVisible(3) ? 500 : 100)
+    let scoreVisible = this.state.layout.isVisible(4)
+    let ms = scoreVisible ? 500 : 100
+    // console.warn('Editor contents changed: waiting ' + ms + ' ms before updating')
+    this.typingTimer = setTimeout(() => this.songcheat(source), ms)
   }
 
-  setPatchworkRef (p) {
-    this.patchwork = p
+  force () {
+    // this ensures SplitPanes are unmounted and re-rendered with their defaultSize
+    this.setState({ clear: true }, () => this.setState({ clear: false }))
+  }
+
+  /* Apply received (loaded) layout as current */
+  setLayout (layout) {
+    this.setState({layout}, () => this.force())
+  }
+
+  /* Update current layout in response to user input */
+  updateLayout (layout) {
+    this.setState({ layout })
+    localStorage.setItem(this._key(this.state.editMode), layout.stringify())
+  }
+
+  /* Reset current layout to the default for current mode */
+  resetLayout () {
+    this.setState({layout: this.defaultLayout(this.state.editMode)}, () => this.force())
+    localStorage.removeItem(this._key(this.state.editMode))
+  }
+
+  /* Switch mode edit <-> view */
+  switchLayout () {
+    let prevMode = this.state.editMode
+    let nextMode = !this.state.editMode
+
+    // current layout (potentially modified) becomes our new reference for prevMode
+    let layouts = { [prevMode]: this.state.layout, [nextMode]: this.state.layouts[nextMode] }
+    this.setState({ editMode: nextMode, layouts: layouts, layout: layouts[nextMode] }, () => this.force())
+  }
+
+  /* Returns default layout for given mode */
+  defaultLayout (editMode) {
+    // test default on big screen
+    // return new Layout(editMode ? {left: [5], right: {bottom: {right: [1], left: {right: [2], left: [0]}}, top: {right: [4], left: [3]}}} : {right: [3, 4], left: {right: [1], left: {'bottom': [2], 'top': [0]}}})
+    return new Layout(editMode ? {right: [0, 1, 2, 3, 4], left: [5]} : { left: [0, 1, 2, 3], right: [4]})
+  }
+
+  /* Update settings in response to user input */
+  updateSetting (key, value) {
+    let settings = this.state.settings.set(key, value)
+    this.setState({settings})
+    localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
   }
 
   render () {
@@ -128,11 +186,11 @@ class App extends Component {
 
       <header className='App-header' style={{position: 'relative'}}>
         <div style={{ position: 'absolute', left: '10px' }}>
-          <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={(event) => { this.setState({editMode: !this.state.editMode}) }} />
+          <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
         </div>
         <div style={{ position: 'absolute', right: '10px' }}>
-          {this.state.editLayout && this.state.showReset && <Button label='Reset layout' onClick={(event) => this.patchwork.resetLayout()} />}
-          <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={(event) => { this.setState({editLayout: !this.state.editLayout}) }} />
+          {this.state.editLayout && !this.defaultLayout(this.state.editMode).equals(this.state.layout) && <Button label='Reset layout' onClick={() => this.resetLayout()} />}
+          <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={() => this.setState({editLayout: !this.state.editLayout})} />
         </div>
         <h1 className='App-title'>SongCheat &nbsp; ♬</h1>
       </header>
@@ -150,28 +208,17 @@ class App extends Component {
         onDrop={this.onDrop.bind(this)} >
 
         <Patchwork
-          ref={this.setPatchworkRef}
-          name={this.state.editMode ? 'Edit' : 'View'}
-          // defaultLayout={this.state.editMode ? {left: [0, 1, 2, 3, 4], right: [5]} : [0, 1, 2, 3, 4]}
-          // test default on big screen
-          defaultLayout={this.state.editMode ? {left: [5], right: {'bottom': {right: [1], left: {right: [2], left: [0]}}, 'top': {right: [4], left: [3]}}} : {right: [3, 4], left: {right: [1], left: {'bottom': [2], 'top': [0]}}}}
-          editable={this.state.editLayout}
-          onChange={() => {
-            if (!this.patchwork) throw new Error('Patchwork triggered onChange before we got our ref: cannot set showReset')
-            let showReset = !this.patchwork.isDefaultLayout()
-            console.log('Updating showReset to ' + showReset + ' after layout changed')
-            this.setState({ showReset })
-          }}>
+          layout={this.state.layout}
+          editLayout={this.state.editLayout}
+          onLayoutChanged={layout => this.updateLayout(layout)}
+          clear={this.state.clear}>
           <General label='General' songcheat={this.state.songcheat} />
-          <Chords label='Chords' songcheat={this.state.songcheat} />
-          <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} />
+          <Chords label='Chords' songcheat={this.state.songcheat} showInline={this.state.settings.get('Chords.showInline')} onShowInline={showInline => this.updateSetting('Chords.showInline', showInline)} />
+          <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          <div label='Score'>
-            <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-            <Score filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          </div>
+          <Score label='Score' audioCtx={this.audioCtx} filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           {this.state.editMode && <div label='Editor' style={{width: '100%'}}>
-            <Editor width='100%' text={this.state.source} filename={this.state.filename} onChange={source => this.onChange(source)} />,
+            <Editor width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.setState({filename})} onChange={source => this.onChange(source)} />,
           </div>}
         </Patchwork>
 

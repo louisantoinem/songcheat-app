@@ -14,12 +14,7 @@ class Chords extends Component {
   constructor (props) {
     super(props)
 
-    // get stored state if any
-    let showInline = localStorage.getItem('Chords.state.showInline') || false
-    if (showInline) try { showInline = JSON.parse(showInline) } catch (e) { showInline = false }
-
     this.state = {
-      showInline: showInline,
       hasInline: false
     }
   }
@@ -51,11 +46,6 @@ class Chords extends Component {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.chords, this.props.chords)) {
       this.updateHasInline()
     }
-
-    // persist state
-    if (prevState.showInline !== this.state.showInline) {
-      localStorage.setItem('Chords.state.showInline', JSON.stringify(this.state.showInline))
-    }
   }
 
   render () {
@@ -63,7 +53,7 @@ class Chords extends Component {
 
       { !this.props.chords &&
       this.state.hasInline && <div className='Options'>
-        <Checkbox onChange={(e) => this.setState({ showInline: e.checked })} checked={this.state.showInline} />
+        <Checkbox onChange={(e) => this.props.onShowInline(e.checked)} checked={this.props.showInline} />
         <label>Show inline chords</label>
       </div>}
 
@@ -71,7 +61,7 @@ class Chords extends Component {
 
       {
         this.chords().map(
-          chord => chord.inline && !this.state.showInline
+          chord => chord.inline && !this.props.showInline
           ? ''
           : <div key={chord.id}>
             {this.chordImage(chord)}

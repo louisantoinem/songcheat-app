@@ -6,6 +6,12 @@ import {Utils, VexTab as SongcheatVexTab, Lyrics, LyricsException} from 'songche
 // 3rd party components
 import ReactResizeDetector from 'react-resize-detector'
 
+// app components
+import Player from './Player'
+
+// css
+import './Score.css'
+
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
 let Artist = vextab.Artist
@@ -34,7 +40,7 @@ class Score extends Component {
     // when done, change state.loading to false in next event loop
     setTimeout(() => {
       this._vextab()
-      setTimeout(() => this.setState({loading: false}), 0)
+      setTimeout(() => { if (!this.canceled) this.setState({loading: false}) }, 0)
     }, 0)
   }
 
@@ -52,10 +58,10 @@ class Score extends Component {
         let canvas = document.getElementById('canvas.u.' + unit.id)
         if (canvas) {
           try {
-              // parse lyrics and show warnings if any
+            // parse lyrics and show warnings if any
             warnings = Array.prototype.concat(warnings, this.lyrics.parseLyrics(unit))
 
-              // parse and render unit score with vextab
+            // parse and render unit score with vextab
             let start = Date.now()
             console.info('Converting unit to vextab score...')
             let score = SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit)
@@ -86,24 +92,41 @@ class Score extends Component {
       console.log(this.props.units.length + ' units took ' + ((Date.now() - t0) / 1000.0) + ' s')
     }
 
-    this.setState({
-      errors: errors,
-      warnings: warnings
-    })
+    if (!this.canceled) {
+      this.setState({
+        errors: errors,
+        warnings: warnings
+      })
+    }
   }
 
   onResize () {
     clearTimeout(this.resizeTimer)
-    this.resizeTimer = setTimeout(() => this.vextab(), 150)
+    this.resizeTimer = setTimeout(() => {
+      console.warn('Score: Vextabbing because resized')
+      this.vextab()
+    }, 150)
   }
 
   componentDidMount () {
+    // console.warn('Score: did mount')
     this.vextab()
+  }
+
+  componentWillUnmount () {
+    // for some strange reason, the first time we switch to edit mode, a Score component is mounted then immediately unmounted
+    // vextab which is called in a setTimeout then produces a warning when calling setState on the unmounted component
+    // this is way we mark that we must cancel this setState
+    // console.warn('Score: will unmount')
+    this.canceled = true
   }
 
   componentWillReceiveProps (nextProps) {
     // show loading message again when new file dropped
-    if (nextProps.filename !== this.props.filename) this.setState({loading: true})
+    if (nextProps.songcheat !== this.props.songcheat && nextProps.filename !== this.props.filename) {
+      console.warn('Score: new file loaded')
+      this.setState({loading: true})
+    }
 
     // recreate Lyrics API when songcheat changed
     if (nextProps.songcheat !== this.props.songcheat) this.lyrics = new Lyrics(nextProps.songcheat, 0)
@@ -111,16 +134,17 @@ class Score extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
-      if (prevProps.songcheat !== this.props.songcheat) console.warn('Vextabbing because songcheat changed')
-      if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.warn('Vextabbing because units changed')
+      if (prevProps.songcheat !== this.props.songcheat) console.warn('Score: Vextabbing because songcheat changed')
+      else if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.warn('Score: Vextabbing because units changed')
       this.vextab()
     } else {
-      console.log('Not vextabbing since nothing changed')
+      console.log('Score: Not vextabbing since nothing changed')
     }
   }
 
   render () {
-    return (<div ref={div => { this.rootDiv = div }}>
+    return (<div className='Score' ref={div => { this.rootDiv = div }}>
+      <Player audioCtx={this.props.audioCtx} rhythm={false} songcheat={this.props.songcheat} units={this.props.songcheat ? this.props.songcheat.structure : []} />
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
@@ -129,7 +153,6 @@ class Score extends Component {
       </div>)}
       {!this.state.loading && <ReactResizeDetector handleWidth handleHeight onResize={() => {
         if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {
-          console.warn('Vextabbing because resized')
           this.onResize()
         }
       }} />}

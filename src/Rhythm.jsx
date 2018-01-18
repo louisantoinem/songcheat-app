@@ -3,10 +3,8 @@ import React, {Component} from 'react'
 // business modules
 import {Utils, Compiler, VexTab as SongcheatVexTab} from 'songcheat-core'
 
-// prime react components
-import {Checkbox} from 'primereact/components/checkbox/Checkbox'
-
 // 3rd party components
+import {Checkbox} from 'primereact/components/checkbox/Checkbox'
 import ReactResizeDetector from 'react-resize-detector'
 
 // app components
@@ -29,12 +27,7 @@ class Rhythm extends Component {
   constructor (props) {
     super(props)
 
-    // get stored state if any
-    let showInline = localStorage.getItem('Rhythm.state.showInline') || false
-    if (showInline) try { showInline = JSON.parse(showInline) } catch (e) { showInline = false }
-
     this.state = {
-      showInline: showInline,
       hasInline: false,
       errors: [],
       warnings: []
@@ -94,18 +87,13 @@ class Rhythm extends Component {
   }
 
   componentDidUpdate (prevProps, prevState) {
-    if (prevProps.songcheat !== this.props.songcheat || prevState.showInline !== this.state.showInline || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
-      if (prevProps.songcheat !== this.props.songcheat) console.warn('Vextabbing because songcheat changed')
-      if (prevState.showInline !== this.state.showInline) console.warn('Vextabbing because showInline changed')
-      if (!Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) console.warn('Vextabbing because rhythms changed')
+    if (prevProps.songcheat !== this.props.songcheat || prevProps.showInline !== this.props.showInline || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
+      if (prevProps.songcheat !== this.props.songcheat) console.warn('Rhythm: Vextabbing because songcheat changed')
+      else if (prevProps.showInline !== this.props.showInline) console.warn('Rhythm: Vextabbing because showInline changed')
+      else if (!Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) console.warn('Rhythm: Vextabbing because rhythms changed')
       this.vextab()
     } else {
-      console.info('Not vextabbing since nothing changed')
-    }
-
-    // persist state
-    if (prevState.showInline !== this.state.showInline) {
-      localStorage.setItem('Rhythm.state.showInline', JSON.stringify(this.state.showInline))
+      console.info('Rhythm: Not vextabbing since nothing changed')
     }
   }
 
@@ -123,21 +111,21 @@ class Rhythm extends Component {
 
       {!this.props.rhythms && this.state.hasInline &&
         <div className='Options'>
-          <Checkbox onChange={(e) => this.setState({showInline: e.checked})} checked={this.state.showInline} />
+          <Checkbox onChange={(e) => this.props.onShowInline(e.checked)} checked={this.props.showInline} />
           <label>Show inline rhythms</label>
         </div>}
 
       {!this.props.rhythms && this.props.songcheat && <h3>Tempo: {this.props.songcheat.signature.tempo} bpm</h3>}
       {!this.props.rhythms && <h3>Rhythms used in this song:</h3>}
 
-      {this.rhythms().map(rhythm => (this.state.showInline || !rhythm.inline) && <div key={rhythm.id}>
+      {this.rhythms().map(rhythm => (this.props.showInline || !rhythm.inline) && <div key={rhythm.id}>
         <Player audioCtx={this.props.audioCtx} rhythm songcheat={this.props.songcheat} units={[compiler.getRhythmUnit(this.props.songcheat, rhythm)]} />
         <canvas id={'canvas.r.' + rhythm.id} />
         </div>)}
 
       <ReactResizeDetector handleWidth handleHeight onResize={() => {
         if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {
-          console.warn('Vextabbing because resized')
+          console.warn('Rhythm: Vextabbing because resized')
           this.vextab()
         }
       }} />
