@@ -116,9 +116,10 @@ class App extends Component {
     try {
       // replace composed chars causing some issues in ACE
       source = Utils.replaceComposedChars(source)
+      filename = filename || this.state.filename
 
       // update current source and filename
-      this.setState({source, filename: filename || this.state.filename})
+      this.setState({source, filename})
       localStorage.setItem('SongCheat.App.Source', source)
       localStorage.setItem('SongCheat.App.Filename', filename)
 
