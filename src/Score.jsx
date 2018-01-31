@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, VexTab as SongcheatVexTab, Lyrics, LyricsException} from 'songcheat-core'
+import {Utils, VexTab as SongcheatVexTab } from 'songcheat-core'
 
 // 3rd party components
 import ReactResizeDetector from 'react-resize-detector'
@@ -24,7 +24,6 @@ class Score extends Component {
 
   constructor (props) {
     super(props)
-    this.lyrics = new Lyrics(props.songcheat, 0)
     this.state = {
       loading: true,
       errors: [],
@@ -72,7 +71,6 @@ class Score extends Component {
       try {
         warnings = Array.prototype.concat(warnings, Utils.BM('[Score.jsx] Unit ' + unit.name, () => { return this._vextabUnit(new Artist(10, 10, W, {scale: 1.0}), unit) }))
       } catch (e) {
-        if (!(e instanceof LyricsException)) console.error(e)
         errors.push(e.message)
       }
     }
@@ -114,9 +112,6 @@ class Score extends Component {
       console.warn('[Score.jsx] Show Loading message because new file loaded')
       this.setState({loading: true})
     }
-
-    // recreate Lyrics API when songcheat changed
-    if (nextProps.songcheat !== this.props.songcheat) this.lyrics = new Lyrics(nextProps.songcheat, 0)
   }
 
   componentDidUpdate (prevProps, prevState) {

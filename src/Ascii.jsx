@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, Lyrics, LyricsException} from 'songcheat-core'
+import {Utils, Ascii as AsciiAPI, AsciiException} from 'songcheat-core'
 
 // 3rd party components
 import {Checkbox} from 'primereact/components/checkbox/Checkbox'
@@ -15,7 +15,7 @@ class Ascii extends Component {
 
   constructor (props) {
     super(props)
-    this.lyrics = new Lyrics(this.props.songcheat, 0)
+    this.ascii = new AsciiAPI(this.props.songcheat, 0)
     this.state = {
       split: 0,
       maxConsecutiveSpaces: 1,
@@ -30,10 +30,10 @@ class Ascii extends Component {
 
     for (let unit of units) {
       try {
-        texts.push(this.lyrics.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
-        texts_structure.push(this.lyrics.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
+        texts.push(this.ascii.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
+        texts_structure.push(this.ascii.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
       } catch (e) {
-        if (!(e instanceof LyricsException)) {
+        if (!(e instanceof AsciiException)) {
           console.error(e)
         }
         errors.push(e.message)
@@ -48,7 +48,7 @@ class Ascii extends Component {
 
   componentWillReceiveProps (nextProps) {
     if (nextProps.songcheat !== this.props.songcheat) {
-      this.lyrics = new Lyrics(nextProps.songcheat, 0)
+      this.ascii = new AsciiAPI(nextProps.songcheat, 0)
     }
     if (nextProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(nextProps.units, this.props.units)) {
       this.getTexts(nextProps.units)
@@ -84,7 +84,7 @@ class Ascii extends Component {
       <Checkbox onChange={(e) => this.optionChanged('structure', e.checked)} checked={this.state.structure} />
       <label>Stucture only</label>
 
-      <div className='Lyrics' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.structure ? 275 : 550)) + 'px' }}>
+      <div className='Ascii' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.structure ? 275 : 550)) + 'px' }}>
         {
         this.props.units.map((unit, index) => <div key={index} style={{color: unit.part.color}}>
           {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
