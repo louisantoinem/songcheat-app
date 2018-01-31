@@ -19,27 +19,19 @@ class Ascii extends Component {
     this.state = {
       split: 0,
       maxConsecutiveSpaces: 1,
-      errors: [],
-      warnings: []
+      errors: []
     }
   }
 
-  parseLyrics (units) {
+  getTexts (units) {
     let errors = []
-    let warnings = []
     let texts = []
     let texts_structure = []
 
     for (let unit of units) {
       try {
-        // parse lyrics and show warnings if any
-        if (unit.id) {
-          warnings = Array.prototype.concat(warnings, this.lyrics.parseLyrics(unit))
-        }
-
-        // get lyrics text
-        texts.push(this.lyrics.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, 'rhythm', this.state.maxConsecutiveSpaces !== 1))
-        texts_structure.push(this.lyrics.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, 'rhythm', this.state.maxConsecutiveSpaces !== 1))
+        texts.push(this.lyrics.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
+        texts_structure.push(this.lyrics.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
       } catch (e) {
         if (!(e instanceof LyricsException)) {
           console.error(e)
@@ -47,11 +39,11 @@ class Ascii extends Component {
         errors.push(e.message)
       }
     }
-    this.setState({errors, warnings, texts, texts_structure})
+    this.setState({errors, texts, texts_structure})
   }
 
   componentWillMount () {
-    this.parseLyrics(this.props.units)
+    this.getTexts(this.props.units)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -59,18 +51,17 @@ class Ascii extends Component {
       this.lyrics = new Lyrics(nextProps.songcheat, 0)
     }
     if (nextProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(nextProps.units, this.props.units)) {
-      this.parseLyrics(nextProps.units)
+      this.getTexts(nextProps.units)
     }
   }
 
   optionChanged (name, value) {
-    this.setState({ [name]: value }, () => { this.parseLyrics(this.props.units) })
+    this.setState({ [name]: value }, () => { this.getTexts(this.props.units) })
   }
 
   render () {
     return (<div className='Ascii'>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
-      {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
       <Select
         value={this.state.maxConsecutiveSpaces}
         onChange={(selectedOption) => { if (selectedOption) this.optionChanged('maxConsecutiveSpaces', selectedOption.value) }}
@@ -93,9 +84,10 @@ class Ascii extends Component {
       <Checkbox onChange={(e) => this.optionChanged('structure', e.checked)} checked={this.state.structure} />
       <label>Stucture only</label>
 
-      <div className='Lyrics' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 ? 275 : 550)) + 'px' }}>
+      <div className='Lyrics' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.structure ? 275 : 550)) + 'px' }}>
         {
-        this.props.units.map((unit, index) => <div key={unit.id} style={{color: unit.part.color}}>
+        this.props.units.map((unit, index) => <div key={index} style={{color: unit.part.color}}>
+          {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
           <p>[{unit.name}]</p>
           <div>{this.state.structure ? this.state.texts_structure[index] : this.state.texts[index]}</div>
         </div>)

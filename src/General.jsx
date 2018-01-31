@@ -12,7 +12,7 @@ class General extends Component {
       <p>{this.props.songcheat.comment}</p>
       <h3>Capo: {this.props.songcheat.capo > 0 ? this.props.songcheat.capo : 'n/a'}</h3>
       <h3>Tuning: {this.props.songcheat.tuning}</h3>
-      {/* TODO: Show: difficulty, video, tutorial, key, time, shuffle (svg) */}
+      {/* TODO: Show: difficulty, video, tutorial, key, time, shuffle (with svg image) */}
     </div>
   }
 }

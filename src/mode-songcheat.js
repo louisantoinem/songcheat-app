@@ -2,7 +2,7 @@ import ace from 'brace'
 import lang from 'brace'
 
 ace.define('ace/mode/songcheat_highlight_rules', ['require', 'exports', 'module', 'ace/lib/oop', 'ace/mode/text_highlight_rules'], function (acequire, exports, module) {
-  exports.reservedKeywords = ('%|ARTIST|TITLE|YEAR|DIFFICULTY|VIDEO|SOURCE|TUTORIAL|COMMENT|TUNING|CAPO|KEY|TIME|TEMPO|SHUFFLE|CHORD|BLOCK|STRUCTURE|RHYTHM|PART')
+  exports.reservedKeywords = ('%|ARTIST|TITLE|YEAR|DIFFICULTY|VIDEO|SOURCE|TUTORIAL|COMMENT|MODE|TUNING|CAPO|KEY|TIME|TEMPO|SHUFFLE|CHORD|BLOCK|STRUCTURE|RHYTHM|PART')
   exports.languageConstructs = ('')
 
   var SongcheatHighlightRules = function () {
@@ -15,7 +15,7 @@ ace.define('ace/mode/songcheat_highlight_rules', ['require', 'exports', 'module'
         regex: '^$'
       },
         { token: 'keyword',
-          regex: '^(?:ARTIST|TITLE|YEAR|DIFFICULTY|VIDEO|SOURCE|TUTORIAL|COMMENT|TUNING|CAPO|KEY|TIME|TEMPO|SHUFFLE|CHORD|BLOCK|STRUCTURE|RHYTHM|PART)'
+          regex: '^(?:ARTIST|TITLE|YEAR|DIFFICULTY|VIDEO|SOURCE|TUTORIAL|COMMENT|MODE|TUNING|CAPO|KEY|TIME|TEMPO|SHUFFLE|CHORD|BLOCK|STRUCTURE|RHYTHM|PART)'
         },
         { token: 'comment',
           regex: '^ *#.*$'

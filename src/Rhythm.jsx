@@ -34,6 +34,31 @@ class Rhythm extends Component {
     }
   }
 
+  _vextabRhythm (artist, rhythm) {
+    let canvas = this.props.rendering === 'canvas' ? document.getElementById('canvas.r.' + rhythm.id) : document.getElementById('div.r.' + rhythm.id)
+    if (!canvas) return rhythm.inline && !this.props.showInline ? [] : ['No canvas for drawing rhythm ' + rhythm.name]
+
+    // register warning if not a whole number of bars
+    let warnings = []
+    if (!rhythm.score.length.bar()) {
+      let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + rhythm.score.length + '. A rhythm unit should be equivalent to a whole number of bars (' + this.props.songcheat.bar + ').'
+      warnings.push(warning)
+    }
+
+    // SVG needs to be cleaned up
+    if (this.props.rendering !== 'canvas') while (canvas.firstChild) canvas.removeChild(canvas.firstChild)
+
+    // convert rhythm to vextab score
+    let score = Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': SongcheatVexTab.Rhythm2VexTab', () => { return SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm) })
+
+    // parse and render unit score with vextab
+    let vextab = new VexTab(artist)
+    Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': vextab.parse', () => { return vextab.parse(score) })
+    Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': artist.render', () => { return artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
+
+    return warnings
+  }
+
   vextab () {
     let errors = []
     let warnings = []
@@ -45,32 +70,11 @@ class Rhythm extends Component {
 
       for (let rhythm of this.rhythms()) {
         if (rhythm.inline) hasInline = true
-        let canvas = document.getElementById('canvas.r.' + rhythm.id)
-        if (canvas) {
-          try {
-            // parse and render rhythm score with vextab
-            console.info('Converting rhythm to vextab score...')
-            let score = SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm)
-
-            // register warning if not a whole number of bars
-            if (rhythm.duration % this.props.songcheat.barDuration) {
-              let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + Math.floor(rhythm.duration / this.props.songcheat.barDuration) + ' bar(s) and ' + Utils.durationcodes(rhythm.duration % this.props.songcheat.barDuration) + '. A rhythm unit should be equivalent to a whole number of bars.'
-              warnings.push(warning)
-            }
-
-            console.info('Parsing score...')
-            let artist = new Artist(10, 10, W, {scale: 1.0})
-            let vextab = new VexTab(artist)
-            vextab.parse(score)
-
-            console.info('Rendering score...')
-            artist.render(new Renderer(canvas, Renderer.Backends.CANVAS))
-
-            console.info('Score done!')
-          } catch (e) {
-            console.error(e)
-            errors.push(e.message)
-          }
+        try {
+          warnings = Array.prototype.concat(warnings, Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name, () => { return this._vextabRhythm(new Artist(10, 10, W, {scale: 1.0}), rhythm) }))
+        } catch (e) {
+          console.error(e)
+          errors.push(e.message)
         }
       }
     }
@@ -88,12 +92,10 @@ class Rhythm extends Component {
 
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || prevProps.showInline !== this.props.showInline || !Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) {
-      if (prevProps.songcheat !== this.props.songcheat) console.warn('Rhythm: Vextabbing because songcheat changed')
-      else if (prevProps.showInline !== this.props.showInline) console.warn('Rhythm: Vextabbing because showInline changed')
-      else if (!Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) console.warn('Rhythm: Vextabbing because rhythms changed')
+      if (prevProps.songcheat !== this.props.songcheat) console.warn('[Rhythm.jsx] Vextabbing because songcheat changed')
+      else if (prevProps.showInline !== this.props.showInline) console.warn('[Rhythm.jsx] Vextabbing because showInline changed')
+      else if (!Utils.arraysEqual(prevProps.rhythms, this.props.rhythms)) console.warn('[Rhythm.jsx] Vextabbing because rhythms changed')
       this.vextab()
-    } else {
-      console.info('Rhythm: Not vextabbing since nothing changed')
     }
   }
 
@@ -120,12 +122,15 @@ class Rhythm extends Component {
 
       {this.rhythms().map(rhythm => (this.props.showInline || !rhythm.inline) && <div key={rhythm.id}>
         <Player audioCtx={this.props.audioCtx} rhythm songcheat={this.props.songcheat} units={[compiler.getRhythmUnit(this.props.songcheat, rhythm)]} />
-        <canvas id={'canvas.r.' + rhythm.id} />
+        <div id={'div.r.' + rhythm.id} >
+          {this.props.rendering === 'canvas' &&
+          <canvas id={'canvas.r.' + rhythm.id} />}
+        </div>
         </div>)}
 
       <ReactResizeDetector handleWidth handleHeight onResize={() => {
         if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {
-          console.warn('Rhythm: Vextabbing because resized')
+          console.warn('[Rhythm.jsx] Vextabbing because resized')
           this.vextab()
         }
       }} />

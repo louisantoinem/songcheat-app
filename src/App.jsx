@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { Map } from 'immutable'
 
 // business modules
-import { Utils, Parser, ParserException, Compiler, CompilerException } from 'songcheat-core'
+import { Utils, Parser, ChordException, ParserException, Compiler, CompilerException } from 'songcheat-core'
 import template from 'songcheat-core/dist/template.json'
 
 // prime react components
@@ -116,8 +116,9 @@ class App extends Component {
       songcheat = this.compiler.compile(songcheat)
       this.setState({source: source, songcheat: songcheat, filename: filename || this.state.filename, error: null})
     } catch (e) {
-      this.setState({source: source, error: e.toString()})
-      if (!(e instanceof ParserException) && !(e instanceof CompilerException)) {
+      // change state.songcheat only when loading a new file, otherwise (i.e. when editing) keep current as is
+      this.setState({source: source, songcheat: filename ? null : this.state.songcheat, filename: filename || this.state.filename, error: e.toString()})
+      if (!(e instanceof ParserException) && !(e instanceof CompilerException) && !(e instanceof ChordException)) {
         console.error(e)
       }
     }
@@ -212,9 +213,9 @@ class App extends Component {
           clear={this.state.clear}>
           <General label='General' songcheat={this.state.songcheat} />
           <Chords label='Chords' songcheat={this.state.songcheat} showInline={this.state.settings.get('Chords.showInline')} onShowInline={showInline => this.updateSetting('Chords.showInline', showInline)} />
-          <Rhythm label='Rhythm' audioCtx={this.audioCtx} songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
+          <Rhythm label='Rhythm' audioCtx={this.audioCtx} rendering='svg' songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          <Score label='Score' audioCtx={this.audioCtx} filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+          <Score label='Score' audioCtx={this.audioCtx} rendering='canvas' filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.setState({filename})} onChange={source => this.onChange(source)} />}
         </Patchwork>
 

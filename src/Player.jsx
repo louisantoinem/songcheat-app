@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, Player} from 'songcheat-core'
+import {Utils, Player, Score} from 'songcheat-core'
 
 // css
 import './Player.css'
@@ -22,24 +22,13 @@ class PlayerUI extends Component {
       // if no unit given, use all units in song
       let units = this.props.units || this.props.songcheat.structure
 
-      // get notes for units
-      let notes = []
-      for (let unit of units) {
-        for (let phrase of unit.part.phrases) {
-          for (let bar of phrase.bars) {
-            for (let note of bar.rhythm.compiledScore) {
-              let chordedNote = JSON.parse(JSON.stringify(note))
-              chordedNote.chord = note.chord || bar.chords[note.placeholderIndex]
-              if (!chordedNote.chord) throw new Error('No chord found for placeholder ' + (note.placeholderIndex + 1))
-              notes.push(chordedNote)
-            }
-          }
-        }
-      }
+      // concat score of units
+      let score = new Score(this.props.songcheat.signature.time)
+      for (let unit of units) score.append(unit.part.score)
 
       // create player on these notes
       if (this.player) this.player.stop()
-      this.player = new Player(this.props.audioCtx, notes, {
+      this.player = new Player(this.props.audioCtx, score, {
         loop: this.props.rhythm,
         capo: parseInt(this.props.songcheat.capo, 10),
         signature: this.props.songcheat.signature,
@@ -90,30 +79,30 @@ class PlayerUI extends Component {
 
       <span className='countdown'>{this.state.countdown}</span>
 
+      {this.player &&
       <div className='controls'>
         {this.player.stopped || this.player.paused ? <a onClick={() => this.play()}>&#9658;</a> : null}
         {this.player.stopped || this.player.paused ? null : <a onClick={() => this.pause()}>&#10074;&#10074;</a>}
         {this.player.stopped ? null : <a onClick={() => this.stop()}>&#9724;</a>}
         {this.player.stopped ? null : <a onClick={() => this.player.rewind()}>&#9668;</a>}
-      </div>
+      </div>}
 
-      {
-        this.player.stopped ? null : <div className='options'>
+      {this.player &&
+      (this.player.stopped ? null : <div className='options'>
 
-          <div>
-            <label>Tempo: </label>
-            <input type='range' min='1' max='200' value={this.player.speedpct} onInput={(e) => this.tempo(e.target.value)} onChange={(e) => this.tempo(e.target.value)} />
-            <span>{this.player.getTempo()} bpm</span>
-            <a onClick={() => this.tempo(100)}>Original</a>
-          </div>
-
-          <div>
-            <label>Volume: </label>
-            <input type='range' min='0' max='100' value={this.player.volume} onInput={(e) => this.volume(e.target.value)} onChange={(e) => this.volume(e.target.value)} />
-          </div>
-
+        <div>
+          <label>Tempo: </label>
+          <input type='range' min='1' max='200' value={this.player.speedpct} onInput={(e) => this.tempo(e.target.value)} onChange={(e) => this.tempo(e.target.value)} />
+          <span>{this.player.getTempo()} bpm</span>
+          <a onClick={() => this.tempo(100)}>Original</a>
         </div>
-      }
+
+        <div>
+          <label>Volume: </label>
+          <input type='range' min='0' max='100' value={this.player.volume} onInput={(e) => this.volume(e.target.value)} onChange={(e) => this.volume(e.target.value)} />
+        </div>
+
+      </div>)}
 
     </div>
   }
