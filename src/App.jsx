@@ -52,13 +52,18 @@ class App extends Component {
     let settings = localStorage.getItem('SongCheat.App.Settings')
     settings = settings ? JSON.parse(settings) : {}
 
+    // load stored source, mode and filename if any
+    let source = localStorage.getItem('SongCheat.App.Source')
+    let filename = localStorage.getItem('SongCheat.App.Filename')
+    let mode = localStorage.getItem('SongCheat.App.Mode')
+
     this.state = {
-      source: null,
+      source: source || template, // use SongCheat template provided by songcheat-core if none saved yet
       songcheat: null,
-      filename: null,
-      editMode: false,
+      filename: filename || null,
+      editMode: mode === 'edit',
       layouts: layouts,
-      layout: layouts[false],
+      layout: layouts[mode === 'edit'],
       settings: Map(settings)
     }
   }
@@ -79,8 +84,7 @@ class App extends Component {
   }
 
   componentWillMount () {
-    // initialize on SongCheat template provided by songcheat-core
-    this.songcheat(template)
+    this.songcheat(this.state.source)
 
     // register prompt plugin
     Popup.registerPlugin('prompt', function (title, defaultValue, placeholder, callback) {
@@ -110,14 +114,21 @@ class App extends Component {
 
   songcheat (source, filename) {
     try {
-      // parse and compile songcheat source
+      // replace composed chars causing some issues in ACE
       source = Utils.replaceComposedChars(source)
+
+      // update current source and filename
+      this.setState({source, filename: filename || this.state.filename})
+      localStorage.setItem('SongCheat.App.Source', source)
+      localStorage.setItem('SongCheat.App.Filename', filename)
+
+      // parse and compile songcheat source
       let songcheat = this.parser.parse(source)
       songcheat = this.compiler.compile(songcheat)
-      this.setState({source: source, songcheat: songcheat, filename: filename || this.state.filename, error: null})
+      this.setState({songcheat: songcheat, error: null})
     } catch (e) {
       // change state.songcheat only when loading a new file, otherwise (i.e. when editing) keep current as is
-      this.setState({source: source, songcheat: filename ? null : this.state.songcheat, filename: filename || this.state.filename, error: e.toString()})
+      this.setState({songcheat: filename ? null : this.state.songcheat, error: e.toString()})
       if (!(e instanceof ParserException) && !(e instanceof CompilerException) && !(e instanceof ChordException)) {
         console.error(e)
       }
@@ -125,11 +136,16 @@ class App extends Component {
   }
 
   onChange (source) {
-    clearTimeout(this.typingTimer)
+    // auto-save source after 1s if no more change
+    clearTimeout(this.saveTimer)
+    this.saveTimer = setTimeout(() => localStorage.setItem('SongCheat.App.Source', source), 1000)
+
+    // recompile songcheat after 0.1 or 0.5s if no more change
+    clearTimeout(this.recompileTimer)
     let scoreVisible = this.state.layout.isVisible(4)
     let ms = scoreVisible ? 500 : 100
     // console.warn('Editor contents changed: waiting ' + ms + ' ms before updating')
-    this.typingTimer = setTimeout(() => this.songcheat(source), ms)
+    this.recompileTimer = setTimeout(() => this.songcheat(source), ms)
   }
 
   force () {
@@ -158,6 +174,7 @@ class App extends Component {
   switchLayout () {
     let prevMode = this.state.editMode
     let nextMode = !this.state.editMode
+    localStorage.setItem('SongCheat.App.Mode', nextMode ? 'edit' : 'view')
 
     // current layout (potentially modified) becomes our new reference for prevMode
     let layouts = { [prevMode]: this.state.layout, [nextMode]: this.state.layouts[nextMode] }
@@ -167,6 +184,12 @@ class App extends Component {
   /* Returns default layout for given mode */
   defaultLayout (editMode) {
     return new Layout(editMode ? {right: [0, 1, 2, 3, 4], left: [5]} : { left: [0, 1, 2, 3], right: [4]})
+  }
+
+  /* Update filename after used saved songcheat */
+  updateFilename (filename) {
+    this.setState({filename})
+    localStorage.setItem('SongCheat.App.Filename', filename)
   }
 
   /* Update settings in response to user input */
@@ -216,7 +239,7 @@ class App extends Component {
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} rendering='svg' songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <Score label='Score' audioCtx={this.audioCtx} rendering='canvas' filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.setState({filename})} onChange={source => this.onChange(source)} />}
+          {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.updateFilename(filename)} onChange={source => this.onChange(source)} />}
         </Patchwork>
 
       </Dropzone>
