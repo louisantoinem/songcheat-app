@@ -20,7 +20,8 @@ class Editor extends Component {
       bindKey: {win: 'Ctrl-s', mac: 'Command-s'},
       exec: editor => {
         if (!this.props.filename) {
-          Popup.plugins().prompt('Enter filename', 'SongCheat.txt', 'Type your name', value => {
+          let filename = this.props.defaultFilename ? this.props.defaultFilename() + '.txt' : 'untitled.txt'
+          Popup.plugins().prompt('Enter filename', filename, 'Type your name', value => {
             let blob = new Blob([editor.getValue()], { type: 'text/plain;charset=utf-8' })
             saveAs(blob, value)
             this.props.onFilenameChanged(value)

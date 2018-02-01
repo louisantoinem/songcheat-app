@@ -18,27 +18,6 @@ section.App {
   }
 }
 
-.Player.Global {
-  position: absolute;
-  left: 10px;
-  z-index: 100;
-  color: white;
-
-  .controls {
-    float: left;
-  }
-
-  .options {
-    position: fixed;
-    left: 10px;
-    top: 40px;
-    width: 320px;
-    padding: 10px;
-    font-size: 1em;
-    opacity: 0.9;
-  }
-}
-
 .App-title {
   font-size: 1.25em;
 }

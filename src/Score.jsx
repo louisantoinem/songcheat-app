@@ -41,22 +41,20 @@ class Score extends Component {
     }, wait || 0)
   }
 
-  _vextabUnit (artist, unit) {
-    let canvas = this.props.rendering === 'canvas' ? document.getElementById('canvas.u.' + unit.id) : document.getElementById('div.u.' + unit.id)
-    if (!canvas) return ['No canvas for drawing unit ' + unit.name]
+  _vextabUnits (artist, units, barsPerLine) {
+    let canvas = this.props.rendering === 'canvas' ? document.getElementById('canvas.u') : document.getElementById('div.u')
+    if (!canvas) return ['No canvas for drawing units']
 
     // SVG needs to be cleaned up
     if (this.props.rendering !== 'canvas') while (canvas.firstChild) canvas.removeChild(canvas.firstChild)
 
     // convert unit to vextab score
-    let score = Utils.BM('[Score.jsx] Unit ' + unit.name + ': SongcheatVexTab.Unit2VexTab', () => { return SongcheatVexTab.Unit2VexTab(this.props.songcheat, unit) })
+    let score = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes) })
 
     // parse and render unit score with vextab
     let vextab = new VexTab(artist)
-    Utils.BM('[Score.jsx] Unit ' + unit.name + ': vextab.parse', () => { return vextab.parse(score) })
-    Utils.BM('[Score.jsx] Unit ' + unit.name + ': artist.render', () => { return artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
-
-    return unit.lyricsWarnings
+    Utils.BM('[Score.jsx] Vextab.parse', () => { return vextab.parse(score) })
+    Utils.BM('[Score.jsx] Artist.render', () => { return artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
   }
 
   _vextab () {
@@ -65,14 +63,12 @@ class Score extends Component {
 
     let W = this.rootDiv.offsetWidth - 20
     this.lastWidth = W
-    this.props.songcheat.barsPerLine = Utils.prevPowerOf2(W / 300)
-
-    for (let unit of this.props.units) {
-      try {
-        warnings = Array.prototype.concat(warnings, Utils.BM('[Score.jsx] Unit ' + unit.name, () => { return this._vextabUnit(new Artist(10, 10, W, {scale: 1.0}), unit) }))
-      } catch (e) {
-        errors.push(e.message)
-      }
+    let barsPerLine = Math.max(1, Math.floor(W / 400)) // Utils.prevPowerOf2(W / 300)
+    try {
+      for (let unit of this.props.units) warnings = Array.prototype.concat(warnings, unit.lyricsWarnings)
+      Utils.BM(`[Score.jsx] Rendering ${this.props.units.length} units`, () => { return this._vextabUnits(new Artist(10, 10, W, {scale: 1.0}), this.props.units, barsPerLine) })
+    } catch (e) {
+      errors.push(e.message)
     }
 
     if (!this.canceled) {
@@ -130,10 +126,10 @@ class Score extends Component {
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
-      {this.props.units.map((unit, index) => <div key={unit.id} id={'div.u.' + unit.id} style={{display: this.state.loading ? 'none' : null}}>
+      <div id={'div.u'} style={{display: this.state.loading ? 'none' : null}}>
         {this.props.rendering === 'canvas' &&
-        <canvas id={'canvas.u.' + unit.id} />}
-      </div>)}
+        <canvas id={'canvas.u'} />}
+      </div>
       {!this.state.loading && <ReactResizeDetector handleWidth handleHeight onResize={() => {
         if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {
           this.onResize()

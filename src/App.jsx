@@ -50,7 +50,13 @@ class App extends Component {
 
     // load stored settings if any
     let settings = localStorage.getItem('SongCheat.App.Settings')
-    settings = settings ? JSON.parse(settings) : {}
+    settings = settings ? JSON.parse(settings) : {
+      'Chords.showInline': false,
+      'Rhythm.showInline': false,
+      'Score.separateUnits': false,
+      'Score.showLyrics': true,
+      'Score.showStrokes': false
+    }
 
     // load stored source, mode and filename if any
     let source = localStorage.getItem('SongCheat.App.Source')
@@ -116,12 +122,12 @@ class App extends Component {
     try {
       // replace composed chars causing some issues in ACE
       source = Utils.replaceComposedChars(source)
-      filename = filename || this.state.filename
+      filename = typeof filename === 'undefined' ? this.state.filename : filename
 
       // update current source and filename
       this.setState({source, filename})
       localStorage.setItem('SongCheat.App.Source', source)
-      localStorage.setItem('SongCheat.App.Filename', filename)
+      localStorage.setItem('SongCheat.App.Filename', filename || '')
 
       // parse and compile songcheat source
       let songcheat = this.parser.parse(source)
@@ -154,24 +160,24 @@ class App extends Component {
     this.setState({ clear: true }, () => this.setState({ clear: false }))
   }
 
-  /* Apply received (loaded) layout as current */
+  // Apply received (loaded) layout as current
   setLayout (layout) {
     this.setState({layout}, () => this.force())
   }
 
-  /* Update current layout in response to user input */
+  // Update current layout in response to user input
   updateLayout (layout) {
     this.setState({ layout })
     localStorage.setItem(this._key(this.state.editMode), layout.stringify())
   }
 
-  /* Reset current layout to the default for current mode */
+  // Reset current layout to the default for current mode
   resetLayout () {
     this.setState({layout: this.defaultLayout(this.state.editMode)}, () => this.force())
     localStorage.removeItem(this._key(this.state.editMode))
   }
 
-  /* Switch mode edit <-> view */
+  // Switch mode edit <-> view
   switchLayout () {
     let prevMode = this.state.editMode
     let nextMode = !this.state.editMode
@@ -182,18 +188,28 @@ class App extends Component {
     this.setState({ editMode: nextMode, layouts: layouts, layout: layouts[nextMode] }, () => this.force())
   }
 
-  /* Returns default layout for given mode */
+  // Returns default layout for given mode
   defaultLayout (editMode) {
     return new Layout(editMode ? {right: [0, 1, 2, 3, 4], left: [5]} : { left: [0, 1, 2, 3], right: [4]})
   }
 
-  /* Update filename after used saved songcheat */
-  updateFilename (filename) {
-    this.setState({filename})
-    localStorage.setItem('SongCheat.App.Filename', filename)
+  // Default filename used when saving a new songcheat for the first time
+  defaultFilename () {
+    let filename = 'untitled'
+    if (this.state.songcheat && this.state.songcheat.title) {
+      filename = this.state.songcheat.title
+      if (this.state.songcheat.artist) filename += ' (' + this.state.songcheat.artist + (this.state.songcheat.year ? ', ' + this.state.songcheat.year : '') + ')'
+    }
+    return filename
   }
 
-  /* Update settings in response to user input */
+  // Update filename after used saved songcheat
+  updateFilename (filename) {
+    this.setState({filename})
+    localStorage.setItem('SongCheat.App.Filename', filename || '')
+  }
+
+  // Update settings in response to user input
   updateSetting (key, value) {
     let settings = this.state.settings.set(key, value)
     this.setState({settings})
@@ -209,13 +225,16 @@ class App extends Component {
       <Popup />
 
       <header className='App-header' style={{position: 'relative'}}>
-        <Player className='Global' audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+        <div style={{ position: 'absolute', left: '10px' }}>
+          <Button label={'New'} onClick={() => { if (window.confirm('Are you sure you want to close the active songcheat (discarding any changes) and create a new one ?')) this.songcheat(template, null) }} />
+          <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+        </div>
         <div style={{ position: 'absolute', right: '10px' }}>
           <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
           {this.state.editLayout && !this.defaultLayout(this.state.editMode).equals(this.state.layout) && <Button label='Reset layout' onClick={() => this.resetLayout()} />}
           <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={() => this.setState({editLayout: !this.state.editLayout})} />
         </div>
-        <h1 className='App-title'>SongCheat &nbsp; ♬</h1>
+        <h1 className='App-title'>SongCheat &nbsp; ♬ &nbsp; {this.defaultFilename()}</h1>
       </header>
 
       {this.state.error ? <div className='edit_error'>{this.state.error}</div> : null}
@@ -239,8 +258,8 @@ class App extends Component {
           <Chords label='Chords' songcheat={this.state.songcheat} showInline={this.state.settings.get('Chords.showInline')} onShowInline={showInline => this.updateSetting('Chords.showInline', showInline)} />
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} rendering='svg' songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          <Score label='Score' audioCtx={this.audioCtx} rendering='canvas' filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} onFilenameChanged={filename => this.updateFilename(filename)} onChange={source => this.onChange(source)} />}
+          <Score label='Score' audioCtx={this.audioCtx} rendering='canvas' separateUnits={this.state.settings.get('Score.separateUnits')} showLyrics={this.state.settings.get('Score.showLyrics')} showStrokes={this.state.settings.get('Score.showStrokes')} filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+          {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} defaultFilename={() => { return this.defaultFilename() }} onFilenameChanged={filename => this.updateFilename(filename)} onChange={source => this.onChange(source)} />}
         </Patchwork>
 
       </Dropzone>
