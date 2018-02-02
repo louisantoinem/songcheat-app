@@ -34,7 +34,7 @@ class Rhythm extends Component {
     }
   }
 
-  _vextabRhythm (artist, rhythm) {
+  _vextabRhythm (rhythm, W) {
     let canvas = this.props.rendering === 'canvas' ? document.getElementById('canvas.r.' + rhythm.id) : document.getElementById('div.r.' + rhythm.id)
     if (!canvas) return rhythm.inline && !this.props.showInline ? [] : ['No canvas for drawing rhythm ' + rhythm.name]
 
@@ -51,10 +51,11 @@ class Rhythm extends Component {
     // convert rhythm to vextab score
     let score = Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': SongcheatVexTab.Rhythm2VexTab', () => { return SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm) })
 
-    // parse and render unit score with vextab
+    // parse and render score with vextab
+    let artist = new Artist(10, 10, W, {scale: 1.0})
     let vextab = new VexTab(artist)
-    Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': vextab.parse', () => { return vextab.parse(score) })
-    Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': artist.render', () => { return artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
+    Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': vextab.parse', () => { vextab.parse(score) })
+    Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': artist.render', () => { artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
 
     return warnings
   }
@@ -71,7 +72,7 @@ class Rhythm extends Component {
       for (let rhythm of this.rhythms()) {
         if (rhythm.inline) hasInline = true
         try {
-          warnings = Array.prototype.concat(warnings, Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name, () => { return this._vextabRhythm(new Artist(10, 10, W, {scale: 1.0}), rhythm) }))
+          warnings = Array.prototype.concat(warnings, Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name, () => { return this._vextabRhythm(rhythm, W) }))
         } catch (e) {
           console.error(e)
           errors.push(e.message)

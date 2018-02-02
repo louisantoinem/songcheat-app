@@ -43121,7 +43121,7 @@ process.umask = function() { return 0; };
         // Repeat end not valid at end of stave
         if (type !== Barline.type.REPEAT_BEGIN) {
           this.modifiers[1].setType(type);
-          this.formatted = false;
+          this.formatted = true;
         }
         return this;
       }

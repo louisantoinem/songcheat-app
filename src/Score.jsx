@@ -20,6 +20,8 @@ let Renderer = window.Vex.Flow.Renderer
 
 Artist.NOLOGO = true
 
+let MAX_STAVES_PER_SCORE = 8
+
 class Score extends Component {
 
   constructor (props) {
@@ -36,25 +38,32 @@ class Score extends Component {
     // when done, change state.loading to false in next event loop
     if (wait) console.warn('[Score.jsx] VexTabbing delayed by ' + wait + ' ms')
     setTimeout(() => {
-      if (this.props.songcheat && this.rootDiv) Utils.BM('[Score.jsx] SongCheat ' + (this.props.songcheat.title || '(untitled)'), () => { return this._vextab() })
+      if (this.props.songcheat && this.rootDiv) Utils.BM(`[Score.jsx] SongCheat "${this.props.songcheat.title || '(untitled)'}"`, () => { return this._vextab() })
       setTimeout(() => { if (!this.canceled) this.setState({loading: false}) }, 0)
     }, wait || 0)
   }
 
-  _vextabUnits (artist, units, barsPerLine) {
-    let canvas = this.props.rendering === 'canvas' ? document.getElementById('canvas.u') : document.getElementById('div.u')
-    if (!canvas) return ['No canvas for drawing units']
+  _vextabUnits (units, W) {
+    // clean up
+    let divUnits = document.getElementById('div.units')
+    if (!divUnits) throw new Error('Could not find div for drawing scores')
+    while (divUnits.firstChild) divUnits.removeChild(divUnits.firstChild)
 
-    // SVG needs to be cleaned up
-    if (this.props.rendering !== 'canvas') while (canvas.firstChild) canvas.removeChild(canvas.firstChild)
+    // convert unit to vextab scores
+    let barsPerLine = Math.max(1, Math.floor(W / 300)) // Utils.prevPowerOf2(W / 300)
+    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, MAX_STAVES_PER_SCORE) })
+    scores.forEach((score, scoreIndex) => {
+      // create canvas or div (for svg)
+      let canvas = document.createElement(this.props.rendering === 'canvas' ? 'canvas' : 'div')
+      if (!canvas) throw new Error('Could not create canvas for drawing score')
+      divUnits.appendChild(canvas)
 
-    // convert unit to vextab score
-    let score = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes) })
-
-    // parse and render unit score with vextab
-    let vextab = new VexTab(artist)
-    Utils.BM('[Score.jsx] Vextab.parse', () => { return vextab.parse(score) })
-    Utils.BM('[Score.jsx] Artist.render', () => { return artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
+      // parse and render score with vextab
+      let artist = new Artist(10, 10, W, {scale: 1.0})
+      let vextab = new VexTab(artist)
+      Utils.BM(`[Score.jsx] ${units.length} units - Score ${scoreIndex + 1}/${scores.length}: vextab.parse`, () => { vextab.parse(score) })
+      Utils.BM(`[Score.jsx] ${units.length} units - Score ${scoreIndex + 1}/${scores.length}: artist.render`, () => { artist.render(new Renderer(canvas, this.props.rendering === 'canvas' ? Renderer.Backends.CANVAS : Renderer.Backends.SVG)) })
+    })
   }
 
   _vextab () {
@@ -63,10 +72,9 @@ class Score extends Component {
 
     let W = this.rootDiv.offsetWidth - 20
     this.lastWidth = W
-    let barsPerLine = Math.max(1, Math.floor(W / 400)) // Utils.prevPowerOf2(W / 300)
     try {
       for (let unit of this.props.units) warnings = Array.prototype.concat(warnings, unit.lyricsWarnings)
-      Utils.BM(`[Score.jsx] Rendering ${this.props.units.length} units`, () => { return this._vextabUnits(new Artist(10, 10, W, {scale: 1.0}), this.props.units, barsPerLine) })
+      Utils.BM(`[Score.jsx] Rendering ${this.props.units.length} units`, () => { this._vextabUnits(this.props.units, W) })
     } catch (e) {
       errors.push(e.message)
     }
@@ -104,7 +112,7 @@ class Score extends Component {
 
   componentWillReceiveProps (nextProps) {
     // show loading message again when new file dropped
-    if (nextProps.songcheat !== this.props.songcheat && nextProps.filename !== this.props.filename) {
+    if (nextProps.filename !== this.props.filename) {
       console.warn('[Score.jsx] Show Loading message because new file loaded')
       this.setState({loading: true})
     }
@@ -126,10 +134,7 @@ class Score extends Component {
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
-      <div id={'div.u'} style={{display: this.state.loading ? 'none' : null}}>
-        {this.props.rendering === 'canvas' &&
-        <canvas id={'canvas.u'} />}
-      </div>
+      <div id='div.units' style={{display: this.state.loading ? 'none' : null}} />
       {!this.state.loading && <ReactResizeDetector handleWidth handleHeight onResize={() => {
         if (this.rootDiv && this.lastWidth !== this.rootDiv.offsetWidth - 20) {
           this.onResize()
