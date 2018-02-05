@@ -30,8 +30,9 @@ class Ascii extends Component {
 
     for (let unit of units) {
       try {
-        texts.push(this.ascii.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
-        texts_structure.push(this.ascii.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1))
+        let chordColorizer = line => { return `<span style='color: ${unit.part.color}'>${line}</span>` }
+        texts.push(this.ascii.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1, chordColorizer))
+        texts_structure.push(this.ascii.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1, chordColorizer))
       } catch (e) {
         if (!(e instanceof AsciiException)) {
           console.error(e)
@@ -86,10 +87,10 @@ class Ascii extends Component {
 
       <div className='Ascii' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.structure ? 275 : 550)) + 'px' }}>
         {
-        this.props.units.map((unit, index) => <div key={index} style={{color: unit.part.color}}>
+        this.props.units.map((unit, index) => <div key={index}>
           {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
-          <p>[{unit.name}]</p>
-          <div>{this.state.structure ? this.state.texts_structure[index] : this.state.texts[index]}</div>
+          <p style={{color: unit.part.color}}>[{unit.name}]</p>
+          <div dangerouslySetInnerHTML={{__html: this.state.structure ? this.state.texts_structure[index] : this.state.texts[index]}} />
         </div>)
         }
       </div>
