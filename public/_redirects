@@ -1,4 +1,6 @@
 # Redirect domain aliases to primary domain
 https://songcheat.com/* https://songcheat.io/:splat 301!
+https://www.songcheat.com/* https://songcheat.io/:splat 301!
 http://songcheat.com/* https://songcheat.io/:splat 301!
+http://www.songcheat.com/* https://songcheat.io/:splat 301!
 
