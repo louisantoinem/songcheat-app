@@ -41,7 +41,7 @@ class Rhythm extends Component {
     // register warning if not a whole number of bars
     let warnings = []
     if (!rhythm.score.length.bar()) {
-      let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + rhythm.score.length + '. A rhythm unit should be equivalent to a whole number of bars (' + this.props.songcheat.bar + ').'
+      let warning = 'Rhythm ' + rhythm.name + ' is currently equivalent to ' + rhythm.score.length + '. A rhythm unit should be equivalent to a whole number of bars (' + this.props.songcheat.signature.time.bar + ').'
       warnings.push(warning)
     }
 

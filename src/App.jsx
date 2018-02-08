@@ -257,7 +257,7 @@ class App extends Component {
           <General label='General' songcheat={this.state.songcheat} />
           <Chords label='Chords' songcheat={this.state.songcheat} showInline={this.state.settings.get('Chords.showInline')} onShowInline={showInline => this.updateSetting('Chords.showInline', showInline)} />
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} rendering='svg' songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
-          <Ascii label='Ascii' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+          <Ascii label='Text' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <Score label='Score' audioCtx={this.audioCtx} rendering='canvas' separateUnits={this.state.settings.get('Score.separateUnits')} showLyrics={this.state.settings.get('Score.showLyrics')} showStrokes={this.state.settings.get('Score.showStrokes')} filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} defaultFilename={() => { return this.defaultFilename() }} onFilenameChanged={filename => this.updateFilename(filename)} onChange={source => this.onChange(source)} />}
         </Patchwork>
