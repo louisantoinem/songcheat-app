@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {Utils, Ascii as AsciiAPI, AsciiException} from 'songcheat-core'
 
 // 3rd party components
-import {Checkbox} from 'primereact/components/checkbox/Checkbox'
+import {RadioButton} from 'primereact/components/radiobutton/RadioButton'
 import Select from 'react-select'
 
 // css
@@ -31,8 +31,8 @@ class Ascii extends Component {
     for (let unit of units) {
       try {
         let chordColorizer = line => { return `<span style='color: ${unit.part.color}'>${line}</span>` }
-        texts.push(this.ascii.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1, chordColorizer))
-        texts_structure.push(this.ascii.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split, this.state.maxConsecutiveSpaces !== 1, chordColorizer))
+        texts.push(this.ascii.getUnitText(unit, this.state.maxConsecutiveSpaces, this.state.split % 10, this.state.maxConsecutiveSpaces !== 1, chordColorizer))
+        texts_structure.push(this.ascii.getPartText(unit.part, this.state.maxConsecutiveSpaces, this.state.split % 10, this.state.maxConsecutiveSpaces !== 1, chordColorizer))
       } catch (e) {
         if (!(e instanceof AsciiException)) {
           console.error(e)
@@ -64,33 +64,31 @@ class Ascii extends Component {
     return (<div className='Ascii'>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       <Select
-        value={this.state.maxConsecutiveSpaces}
-        onChange={(selectedOption) => { if (selectedOption) this.optionChanged('maxConsecutiveSpaces', selectedOption.value) }}
-        options={[
-          { value: 1, label: 'Compact' },
-          { value: 0, label: 'Respect chord durations' }
-        ]}
-      />
-      <Select
         value={this.state.split}
         onChange={(selectedOption) => { if (selectedOption) this.optionChanged('split', selectedOption.value) }}
         options={[
-          { value: 0, label: this.state.structure ? 'One line per part' : 'Split as entered' },
-          { value: 1, label: 'One bar par line' },
-          { value: 2, label: 'Two bars par line' },
-          { value: 4, label: 'Four bars par line' }
+          { value: 0, label: 'Lyrics as entered' },
+          { value: 1, label: 'Lyrics by 1 bar' },
+          { value: 2, label: 'Lyrics by 2 bars' },
+          { value: 3, label: 'Lyrics by 3 bars' },
+          { value: 4, label: 'Lyrics by 4 bars' },
+          { value: 11, label: 'Structure by 1 bar' },
+          { value: 12, label: 'Structure by 2 bars' },
+          { value: 13, label: 'Structure by 3 bars' },
+          { value: 14, label: 'Structure by 4 bars' }
         ]}
       />
+      <RadioButton onChange={() => this.optionChanged('maxConsecutiveSpaces', 1)} checked={this.state.maxConsecutiveSpaces === 1} />
+      <label>Compact </label>
+      <RadioButton onChange={() => this.optionChanged('maxConsecutiveSpaces', 0)} checked={this.state.maxConsecutiveSpaces === 0} />
+      <label>Respect chord durations</label>
 
-      <Checkbox onChange={(e) => this.optionChanged('structure', e.checked)} checked={this.state.structure} />
-      <label>Stucture only</label>
-
-      <div className='Ascii' style={{ columns: ((this.state.split || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.structure ? 275 : 550)) + 'px' }}>
+      <div className='Ascii' style={{ columns: (((this.state.split % 10) || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.split > 10 ? 275 : 550)) + 'px' }}>
         {
         this.props.units.map((unit, index) => <div key={index}>
           {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
           <p style={{color: unit.part.color}}>[{unit.name}]</p>
-          <div dangerouslySetInnerHTML={{__html: this.state.structure ? this.state.texts_structure[index] : this.state.texts[index]}} />
+          <div dangerouslySetInnerHTML={{__html: this.state.split > 10 ? this.state.texts_structure[index] : this.state.texts[index]}} />
         </div>)
         }
       </div>
