@@ -1,8 +1,25 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import './index.css'
-import App from './App.jsx'
 import registerServiceWorker from './registerServiceWorker'
+import { StitchClientFactory } from "mongodb-stitch";
+import App from './App.jsx'
+import './index.css'
 
-ReactDOM.render(<App />, document.getElementById('root'))
+let appId = "songcheat-stitch-irqmn";
+let mongodbService = "mongodb-atlas";
+let options = {};
+
+if (process.env.APP_ID) appId = process.env.APP_ID;
+if (process.env.MONGODB_SERVICE) mongodbService = process.env.MONGODB_SERVICE;
+if (process.env.STITCH_URL) options.baseUrl = process.env.STITCH_URL;
+
+let stitchClientPromise = StitchClientFactory.create(appId, options);
+
+stitchClientPromise.then(stitchClient => {
+  let db = stitchClient.service("mongodb", mongodbService).db("songcheat");
+  let songcheats = db.collection("songcheats");
+  let props = { stitchClient, songcheats };
+  ReactDOM.render(<App {...props} />, document.getElementById('root'))
+})
+
 registerServiceWorker()

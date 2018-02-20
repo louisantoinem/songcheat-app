@@ -14,6 +14,7 @@ import Popup from 'react-popup'
 import Dropzone from 'react-dropzone'
 
 // app components
+import Auth from './Auth'
 import Patchwork from './Patchwork'
 import Layout from './Layout'
 import Player from './Player'
@@ -229,6 +230,7 @@ class App extends Component {
           <Button label={'New'} onClick={() => { if (window.confirm('Are you sure you want to close the active songcheat (discarding any changes) and create a new one ?')) this.songcheat(template, null) }} />
           <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         </div>
+        <Auth stitchClient={this.props.stitchClient} />
         <div style={{ position: 'absolute', right: '10px' }}>
           <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
           {this.state.editLayout && !this.defaultLayout(this.state.editMode).equals(this.state.layout) && <Button label='Reset layout' onClick={() => this.resetLayout()} />}

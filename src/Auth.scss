@@ -1,0 +1,59 @@
+.Auth {
+  position: absolute;
+  left: 125px;
+
+  .logout {
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: 10px;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .login-links-panel {
+    margin-left: 5px;
+  }
+
+  .profile-pic {
+    height: 30px;
+    width: 30px;
+    margin-right: 10px;
+  }
+
+  .login-header {
+    display: flex;
+    align-items: center;
+
+    .login-text {
+      color: #888;
+
+      .username {
+        color: white;
+        font-weight: normal;
+      }
+    }
+  }
+
+  .signin-button {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+
+    &-text {
+      padding-left: 5px;
+    }
+    margin: 0 3px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+
+  .facebook-signin-logo {
+    height: 18px;
+    width: 18px;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAMAAABhTZc9AAAAM1BMVEU7V53////7/P33+Pvm6vPe4++erM9HYaPs7/bY3uu8xd6uutiXpstfd7BNZ6dGYKM+Wp8D8PpVAAAAS0lEQVQoz2MYIoCfh5OZkZkFuyQvCyMYYJVk52DEI8vGiE+WFSjBzY7LTUxAWT6cLgYbSnVZRiTAJIBPlhWvXi68smz4XTUqS6IsADRcAScdHoCmAAAAAElFTkSuQmCC");
+    background-size: 18px 18px;
+  }
+}
