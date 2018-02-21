@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
 import ReactResizeDetector from 'react-resize-detector'
 import Popup from 'react-popup'
-import saveAs from 'save-as'
 
 // components
 import AceEditor from 'react-ace'
@@ -19,16 +18,16 @@ class Editor extends Component {
       name: 'saveAs',
       bindKey: {win: 'Ctrl-s', mac: 'Command-s'},
       exec: editor => {
-        if (!this.props.filename) {
+        if (this.props.filename) this.props.onSave(editor.getValue(), this.props.filename)
+        else {
           let filename = this.props.defaultFilename ? this.props.defaultFilename() + '.txt' : 'untitled.txt'
-          Popup.plugins().prompt('Enter filename', filename, 'Type your name', value => {
-            let blob = new Blob([editor.getValue()], { type: 'text/plain;charset=utf-8' })
-            saveAs(blob, value)
-            this.props.onFilenameChanged(value)
-          })
-        } else {
-          let blob = new Blob([editor.getValue()], { type: 'text/plain;charset=utf-8' })
-          saveAs(blob, this.props.filename)
+          if (this.props.authed()) this.props.onSave(editor.getValue(), filename)
+          else {
+            Popup.plugins().prompt('Enter filename', filename, 'Type your name', value => {
+              this.props.onSave(editor.getValue(), value)
+              this.props.onFilenameChanged(value)
+            })
+          }
         }
       }
     })

@@ -1,6 +1,8 @@
 .Auth {
-  position: absolute;
-  left: 150px;
+  background-color: #313131;
+  color: white;
+  padding: 3px 10px;
+  text-align: right;
 
   .logout {
     cursor: pointer;
@@ -23,7 +25,8 @@
   }
 
   .login-header {
-    display: flex;
+    display: inline-flex;
+    vertical-align: bottom;
     align-items: center;
 
     .login-text {
@@ -37,9 +40,10 @@
   }
 
   .signin-button {
-    cursor: pointer;
     display: inline-flex;
+    vertical-align: bottom;
     align-items: center;
+    cursor: pointer;
 
     &-text {
       padding-left: 5px;

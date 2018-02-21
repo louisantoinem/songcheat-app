@@ -8,13 +8,15 @@ import template from 'songcheat-core/dist/template.json'
 
 // prime react components
 import { Button } from 'primereact/components/button/Button'
+import { Growl } from 'primereact/components/growl/Growl'
 
 // 3rd party components
 import Popup from 'react-popup'
 import Dropzone from 'react-dropzone'
+import saveAs from 'save-as'
+import { BSON } from 'mongodb-stitch'
 
 // app components
-import Auth from './Auth'
 import Patchwork from './Patchwork'
 import Layout from './Layout'
 import Player from './Player'
@@ -39,7 +41,9 @@ class App extends Component {
     super(props)
     this.parser = new Parser()
     this.compiler = new Compiler(0)
-    this.audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)()
+    this.audioCtx = this.props.audioCtx
+    this.stitchClient = this.props.stitchClient
+    this.songcheats = this.props.songcheats
 
     // load stored layouts if any or get default ones
     let layoutView = localStorage.getItem(this._key(false))
@@ -65,7 +69,7 @@ class App extends Component {
     let mode = localStorage.getItem('SongCheat.App.Mode')
 
     this.state = {
-      source: source || template, // use SongCheat template provided by songcheat-core if none saved yet
+      source: this.props.match.params._id ? '' : (source || template), // use SongCheat template provided by songcheat-core if none saved yet
       songcheat: null,
       filename: filename || null,
       editMode: mode === 'edit',
@@ -80,10 +84,9 @@ class App extends Component {
   }
 
   onDrop (acceptedFiles, rejectedFiles) {
-    let self = this
     acceptedFiles.forEach(file => {
       const reader = new FileReader()
-      reader.onload = () => self.songcheat(reader.result, file.name)
+      reader.onload = () => this.songcheat(reader.result, file.name)
       reader.onabort = () => console.log('file reading was aborted')
       reader.onerror = () => console.log('file reading has failed')
       reader.readAsText(file)
@@ -91,7 +94,7 @@ class App extends Component {
   }
 
   componentWillMount () {
-    this.songcheat(this.state.source)
+    if (!this.props.match.params._id) this.songcheat(this.state.source)
 
     // register prompt plugin
     Popup.registerPlugin('prompt', function (title, defaultValue, placeholder, callback) {
@@ -117,6 +120,18 @@ class App extends Component {
         }
       })
     })
+  }
+
+  componentDidMount () {
+    // if a songcheats _id is given in url
+    if (this.props.match.params._id) {
+      this.songcheats.findOne({ '_id': BSON.ObjectID(this.props.match.params._id) }).then(document => {
+        if (document) {
+          console.warn(`Loaded document with _id ${this.props.match.params._id}`)
+          this.songcheat(document.source, null)
+        }
+      })
+    }
   }
 
   songcheat (source, filename) {
@@ -154,6 +169,45 @@ class App extends Component {
     let ms = scoreVisible ? 500 : 100
     // console.warn('Editor contents changed: waiting ' + ms + ' ms before updating')
     this.recompileTimer = setTimeout(() => this.songcheat(source), ms)
+  }
+
+  async onSave (source, filename) {
+    // logged in: insert or update mongodb document
+    if (this.props.authed()) return this.save(BSON.ObjectID(this.props.match.params._id))
+
+    // not logged in: download text file
+    let blob = new Blob([source], { type: 'text/plain;charset=utf-8' })
+    saveAs(blob, filename)
+  }
+
+  async save (_id) {
+    if (!this.props.authed()) throw new Error('Cannot save songcheat: not logged in')
+
+    let document = {
+      owner_id: this.stitchClient.authedId(),
+      source: this.state.source,
+      artist: this.state.songcheat.artist,
+      year: this.state.songcheat.year,
+      title: this.state.songcheat.title,
+      last_modified: new Date()
+    }
+
+    try {
+      if (_id) {
+        let updated = await this.songcheats.updateOne({ '_id': _id }, document)
+        console.warn(`Updated ${updated.matchedCount} document`)
+        if (updated.matchedCount === 0) throw new Error(`ID ${_id} not found`)
+        this.growl.show({ severity: 'success', summary: 'SongCheat saved', detail: `Sucessfully saved songcheat ${this.defaultFilename()}` })
+      } else {
+        let inserted = await this.songcheats.insertOne(document)
+        console.warn(`Inserted document with _id ${inserted.insertedId}`)
+        this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
+        this.props.history.push('/' + inserted.insertedId)
+      }
+    } catch (e) {
+      console.error(e)
+      this.growl.show({ severity: 'error', summary: 'SongCheat NOT saved', detail: `Error saving songcheat : ${e.message}` })
+    }
   }
 
   force () {
@@ -204,7 +258,7 @@ class App extends Component {
     return filename
   }
 
-  // Update filename after used saved songcheat
+  // Update filename after user saved songcheat
   updateFilename (filename) {
     this.setState({filename})
     localStorage.setItem('SongCheat.App.Filename', filename || '')
@@ -224,14 +278,14 @@ class App extends Component {
     return (<section className='App'>
 
       <Popup />
+      <Growl ref={(el) => { this.growl = el }} />
 
       <header className='App-header' style={{position: 'relative'}}>
-        <div style={{ position: 'absolute', left: '10px' }}>
+        <div style={{ position: 'absolute', left: '5px' }}>
           <Button label={'New'} onClick={() => { if (window.confirm('Are you sure you want to close the active songcheat (discarding any changes) and create a new one ?')) this.songcheat(template, null) }} />
           <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         </div>
-        <Auth stitchClient={this.props.stitchClient} />
-        <div style={{ position: 'absolute', right: '10px' }}>
+        <div style={{ position: 'absolute', right: '5px' }}>
           <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
           {this.state.editLayout && !this.defaultLayout(this.state.editMode).equals(this.state.layout) && <Button label='Reset layout' onClick={() => this.resetLayout()} />}
           <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={() => this.setState({editLayout: !this.state.editLayout})} />
@@ -240,7 +294,6 @@ class App extends Component {
       </header>
 
       {this.state.error ? <div className='edit_error'>{this.state.error}</div> : null}
-      {this.state.error || this.state.songcheat ? null : <div className='edit_error'>No songcheat ?!</div>}
 
       <Dropzone
         style={{ flex: 1, display: 'flex', boxSizing: 'border-box', position: 'relative' }} // needed to serve as a container for splitpane
@@ -261,7 +314,15 @@ class App extends Component {
           <Rhythm label='Rhythm' audioCtx={this.audioCtx} rendering='svg' songcheat={this.state.songcheat} showInline={this.state.settings.get('Rhythm.showInline')} onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Text' songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
           <Score label='Score' audioCtx={this.audioCtx} rendering='canvas' separateUnits={this.state.settings.get('Score.separateUnits')} showLyrics={this.state.settings.get('Score.showLyrics')} showStrokes={this.state.settings.get('Score.showStrokes')} filename={this.state.filename} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
-          {this.state.editMode && <Editor label='Editor' width='100%' text={this.state.source} filename={this.state.filename} defaultFilename={() => { return this.defaultFilename() }} onFilenameChanged={filename => this.updateFilename(filename)} onChange={source => this.onChange(source)} />}
+          {this.state.editMode && <Editor {...this.props}
+            label='Editor'
+            width='100%'
+            text={this.state.source}
+            filename={this.state.filename}
+            defaultFilename={() => { return this.defaultFilename() }}
+            onFilenameChanged={filename => this.updateFilename(filename)}
+            onChange={source => this.onChange(source)}
+            onSave={(source, filename) => this.onSave(source, filename)} />}
         </Patchwork>
 
       </Dropzone>

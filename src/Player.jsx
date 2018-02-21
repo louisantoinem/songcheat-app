@@ -69,8 +69,9 @@ class PlayerUI extends Component {
   componentDidUpdate (prevProps, prevState) {
     if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
       if (prevProps.songcheat !== this.props.songcheat) console.log('Player: getting notes because songcheat changed')
-      if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.log('Player: getting notes because units changed')
+      else if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.log('Player: getting notes because units changed')
       this.getNotes()
+      this.forceUpdate()
     }
   }
 
