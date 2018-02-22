@@ -26,6 +26,7 @@ export default class Browser extends Component {
     if (this.stitchClient.isAuthenticated()) {
       let allData = await this.songcheats.find().execute()
       let myData = await this.songcheats.find({ owner_id: this.stitchClient.authedId() }).execute()
+      myData.splice(0, 0, { title: '(CREATE NEW)', _id: 'new' })
       this.setState({ allData, myData })
     }
   }

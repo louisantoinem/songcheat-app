@@ -3,7 +3,7 @@ import React, { Component } from 'react'
 import { Map } from 'immutable'
 
 // business modules
-import { Utils, Parser, ChordException, ParserException, Compiler, CompilerException } from 'songcheat-core'
+import { Utils, Parser, ChordException, TokenizerException, ParserException, Compiler, CompilerException } from 'songcheat-core'
 import template from 'songcheat-core/dist/template.json'
 
 // prime react components
@@ -45,6 +45,10 @@ class App extends Component {
     this.stitchClient = this.props.stitchClient
     this.songcheats = this.props.songcheats
 
+    // get _id from url, if it's a valid one
+    this._id = null
+    try { if (this.props.match.params._id) this._id = BSON.ObjectID(this.props.match.params._id) } catch (e) {}
+
     // load stored layouts if any or get default ones
     let layoutView = localStorage.getItem(this._key(false))
     let layoutEdit = localStorage.getItem(this._key(true))
@@ -64,12 +68,12 @@ class App extends Component {
     }
 
     // load stored source, mode and filename if any
-    let source = localStorage.getItem('SongCheat.App.Source')
-    let filename = localStorage.getItem('SongCheat.App.Filename')
+    let source = '' // localStorage.getItem('SongCheat.App.Source')
+    let filename = null // localStorage.getItem('SongCheat.App.Filename')
     let mode = localStorage.getItem('SongCheat.App.Mode')
 
     this.state = {
-      source: this.props.match.params._id ? '' : (source || template), // use SongCheat template provided by songcheat-core if none saved yet
+      source: this._id ? '' : (source || template), // use SongCheat template provided by songcheat-core if none saved yet
       songcheat: null,
       filename: filename || null,
       editMode: mode === 'edit',
@@ -94,7 +98,7 @@ class App extends Component {
   }
 
   componentWillMount () {
-    if (!this.props.match.params._id) this.songcheat(this.state.source)
+    if (!this._id) this.songcheat(this.state.source)
 
     // register prompt plugin
     Popup.registerPlugin('prompt', function (title, defaultValue, placeholder, callback) {
@@ -124,10 +128,10 @@ class App extends Component {
 
   componentDidMount () {
     // if a songcheats _id is given in url
-    if (this.props.match.params._id) {
-      this.songcheats.findOne({ '_id': BSON.ObjectID(this.props.match.params._id) }).then(document => {
+    if (this._id) {
+      this.songcheats.findOne({ '_id': this._id }).then(document => {
         if (document) {
-          console.warn(`Loaded document with _id ${this.props.match.params._id}`)
+          console.warn(`Loaded document with _id ${this._id}`)
           this.songcheat(document.source, null)
         }
       })
@@ -152,7 +156,7 @@ class App extends Component {
     } catch (e) {
       // change state.songcheat only when loading a new file, otherwise (i.e. when editing) keep current as is
       this.setState({songcheat: filename ? null : this.state.songcheat, error: e.toString()})
-      if (!(e instanceof ParserException) && !(e instanceof CompilerException) && !(e instanceof ChordException)) {
+      if (!(e instanceof ParserException) && !(e instanceof TokenizerException) && !(e instanceof CompilerException) && !(e instanceof ChordException)) {
         console.error(e)
       }
     }
@@ -172,37 +176,44 @@ class App extends Component {
   }
 
   async onSave (source, filename) {
+/*
+    if (!this.state.songcheat) {
+      this.growl.show({ severity: 'warn', summary: 'SongCheat must be fixed', detail: `Please fix all errors before saving your SongCheat` })
+      return
+    }
+*/
     // logged in: insert or update mongodb document
-    if (this.props.authed()) return this.save(BSON.ObjectID(this.props.match.params._id))
+    if (this.props.authed()) return this.save()
 
     // not logged in: download text file
     let blob = new Blob([source], { type: 'text/plain;charset=utf-8' })
     saveAs(blob, filename)
   }
 
-  async save (_id) {
+  async save () {
     if (!this.props.authed()) throw new Error('Cannot save songcheat: not logged in')
 
     let document = {
       owner_id: this.stitchClient.authedId(),
       source: this.state.source,
-      artist: this.state.songcheat.artist,
-      year: this.state.songcheat.year,
-      title: this.state.songcheat.title,
+      artist: this.state.songcheat ? this.state.songcheat.artist : null,
+      year: this.state.songcheat ? this.state.songcheat.year : null,
+      title: this.state.songcheat ? this.state.songcheat.title : '(unkown)',
       last_modified: new Date()
     }
 
     try {
-      if (_id) {
-        let updated = await this.songcheats.updateOne({ '_id': _id }, document)
+      if (this._id) {
+        let updated = await this.songcheats.updateOne({ '_id': this._id }, document)
         console.warn(`Updated ${updated.matchedCount} document`)
-        if (updated.matchedCount === 0) throw new Error(`ID ${_id} not found`)
+        if (updated.matchedCount === 0) throw new Error(`ID ${this._id} not found`)
         this.growl.show({ severity: 'success', summary: 'SongCheat saved', detail: `Sucessfully saved songcheat ${this.defaultFilename()}` })
       } else {
         let inserted = await this.songcheats.insertOne(document)
         console.warn(`Inserted document with _id ${inserted.insertedId}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
-        this.props.history.push('/' + inserted.insertedId)
+        this.props.history.replace('/' + inserted.insertedId)
+        this._id = inserted.insertedId
       }
     } catch (e) {
       console.error(e)
@@ -282,7 +293,6 @@ class App extends Component {
 
       <header className='App-header' style={{position: 'relative'}}>
         <div style={{ position: 'absolute', left: '5px' }}>
-          <Button label={'New'} onClick={() => { if (window.confirm('Are you sure you want to close the active songcheat (discarding any changes) and create a new one ?')) this.songcheat(template, null) }} />
           <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
         </div>
         <div style={{ position: 'absolute', right: '5px' }}>
