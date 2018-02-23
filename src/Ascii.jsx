@@ -83,7 +83,7 @@ class Ascii extends Component {
       <RadioButton onChange={() => this.optionChanged('maxConsecutiveSpaces', 0)} checked={this.state.maxConsecutiveSpaces === 0} />
       <label>Respect chord durations</label>
 
-      <div className='Ascii' style={{ columns: (((this.state.split % 10) || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.split > 10 ? 275 : 550)) + 'px' }}>
+      <div className='Ascii' style={{ columns: (((this.state.split % 10) || 2) * (this.state.maxConsecutiveSpaces === 1 || this.state.split > 10 ? 375 : 700)) + 'px' }}>
         {
         this.props.units.map((unit, index) => <div key={index}>
           {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}

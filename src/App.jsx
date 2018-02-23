@@ -256,7 +256,7 @@ class App extends Component {
 
   // Returns default layout for given mode
   defaultLayout (editMode) {
-    return new Layout(editMode ? {right: [0, 1, 2, 3, 4], left: [5]} : { left: [0, 1, 2, 3], right: [4]})
+    return new Layout(editMode ? {right: [0, 1, 2, 3, 4], left: [5]} : [0, 1, 2, 3, 4])
   }
 
   // Default filename used when saving a new songcheat for the first time
