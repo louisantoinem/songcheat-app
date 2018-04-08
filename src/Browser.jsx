@@ -1,9 +1,9 @@
 // react
 import React, { Component } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, Route } from 'react-router-dom'
 
 // prime react components
-import { DataList } from 'primereact/components/datalist/DataList'
+import { Button } from 'primereact/components/button/Button'
 
 // css
 import './Browser.css'
@@ -24,9 +24,8 @@ export default class Browser extends Component {
 
   async componentDidMount () {
     if (this.stitchClient.isAuthenticated()) {
-      let allData = await this.songcheats.find().execute()
+      let allData = await this.songcheats.find({ owner_id: { $ne: this.stitchClient.authedId() }}).execute()
       let myData = await this.songcheats.find({ owner_id: this.stitchClient.authedId() }).execute()
-      myData.splice(0, 0, { title: '(CREATE NEW)', _id: 'new' })
       this.setState({ allData, myData })
     }
   }
@@ -38,7 +37,7 @@ export default class Browser extends Component {
     if (item.artist) str += ' (' + item.artist + (item.year ? ', ' + item.year : '') + ')'
 
     return (
-      <div className='item'>
+      <div className='item' key={item._id}>
         <Link to={'/' + item._id}>{str}</Link>
       </div>
     )
@@ -46,8 +45,22 @@ export default class Browser extends Component {
 
   render () {
     return (<div className='Index' >
-      { this.props.authed() && this.state.myData && <DataList value={this.state.myData} itemTemplate={item => { return this.itemTemplate(item) }} header='My SongCheats' /> }
-      { this.state.allData && <DataList value={this.state.allData} itemTemplate={item => { return this.itemTemplate(item) }} header='All SongCheats' /> }
+      { this.props.authed() && this.state.myData &&
+        <div>
+          <h1>My SongCheats</h1>
+          <Route render={({ history}) => <Button label='Create' icon='fa-plus' className='new' onClick={() => { history.push('/new') }} />} />
+          { !this.state.myData.length && <div className='item'><i>(none)</i></div> }
+          { this.state.myData.map(item => { return this.itemTemplate(item) })}
+        </div>
+      }
+      { this.state.allData &&
+        <div>
+          { this.props.authed() && <h1>Other SongCheats</h1> }
+          { !this.props.authed() && <h1>All SongCheats</h1> }
+          { !this.state.allData.length && <div className='item'><i>(none)</i></div> }
+          { this.state.allData.map(item => { return this.itemTemplate(item) })}
+        </div>
+      }
     </div>
     )
   }

@@ -70,7 +70,7 @@ class App extends Component {
     // load stored source, mode and filename if any
     let source = '' // localStorage.getItem('SongCheat.App.Source')
     let filename = null // localStorage.getItem('SongCheat.App.Filename')
-    let mode = localStorage.getItem('SongCheat.App.Mode')
+    let mode = this._id ? localStorage.getItem('SongCheat.App.Mode') : 'edit'
 
     this.state = {
       source: this._id ? '' : (source || template), // use SongCheat template provided by songcheat-core if none saved yet
