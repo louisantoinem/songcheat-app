@@ -33,7 +33,8 @@ class PlayerUI extends Component {
         capo: parseInt(this.props.songcheat.capo, 10),
         signature: this.props.songcheat.signature,
         type: this.props.songcheat.wave,
-        onDone: () => this.forceUpdate(),
+        onDone: () => this.setState({note: null}),
+        onNote: (note, isBar, isBeat, isUp, isDown, isArpeggiated) => this.setState({note, isBar, isBeat, isUp, isDown, isArpeggiated}),
         onCountdown: (c) => this.setState({countdown: c || ''})
       })
 
@@ -78,7 +79,15 @@ class PlayerUI extends Component {
   render () {
     return <div className={'Player ' + (this.props.className || '')}>
 
-      <span className='countdown'>{this.state.countdown}</span>
+      <span className='countdown'>
+        {this.state.countdown}
+        {this.state.note && <div>
+          {this.state.note.rest && <span>REST</span>}
+          {!this.state.note.rest && this.state.note.chord && <span>{this.state.note.chord.name}</span>}
+          {this.state.isDown && <span className='small'>D</span>}
+          {this.state.isUp && <span className='small'>U</span>}
+        </div>}
+      </span>
 
       {this.player &&
       <div className='controls'>
