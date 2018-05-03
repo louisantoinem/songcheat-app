@@ -84,8 +84,8 @@ class PlayerUI extends Component {
         {this.state.note && <div>
           {this.state.note.rest && <span>REST</span>}
           {!this.state.note.rest && this.state.note.chord && <span>{this.state.note.chord.name}</span>}
-          {this.state.isDown && <span className='small'>D</span>}
-          {this.state.isUp && <span className='small'>U</span>}
+          {/* {this.state.isDown && <span className='small'>D</span>}
+          {this.state.isUp && <span className='small'>U</span>} */}
         </div>}
       </span>
 

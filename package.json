@@ -24,7 +24,7 @@
     "react-tabs": "^2.2.1",
     "react-transition-group": "^2.2.1",
     "save-as": "^0.1.8",
-    "songcheat-core": "^1.0.9",
+    "songcheat-core": "^1.0.10",
     "vextab": "^2.0.13"
   },
   "scripts": {
