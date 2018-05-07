@@ -64,7 +64,7 @@ class App extends Component {
       'Rhythm.showInline': false,
       'Score.separateUnits': false,
       'Score.showLyrics': true,
-      'Score.showStrokes': true
+      'Score.showStrokes': false
     }
 
     // load stored source, mode and filename if any
