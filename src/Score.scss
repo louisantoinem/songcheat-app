@@ -1,3 +1,14 @@
 .Score {
   padding: 5px 0;
+
+  > div.Select {
+    float: left;
+    margin: 0 10px;
+    width: 350px;
+  }
+
+  .ui-chkbox-box,
+  label {
+    margin-left: 5px;
+  }
 }

@@ -3,11 +3,16 @@ import React, {Component} from 'react'
 // business modules
 import {Utils, VexTab as SongcheatVexTab } from 'songcheat-core'
 
+// prime react components
+import {Checkbox} from 'primereact/components/checkbox/Checkbox'
+
 // 3rd party components
 import ReactResizeDetector from 'react-resize-detector'
+import Select from 'react-select'
 
 // css
 import './Score.css'
+import 'react-select/dist/react-select.css'
 
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab
@@ -51,7 +56,7 @@ class Score extends Component {
 
     // convert unit to vextab scores
     let barsPerLine = Math.max(1, Math.floor(W / 500)) // Utils.prevPowerOf2(W / 300)
-    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, MAX_STAVES_PER_SCORE) })
+    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, this.props.staveMode, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, MAX_STAVES_PER_SCORE) })
     scores.forEach((score, scoreIndex) => {
       // create canvas or div (for svg)
       let canvas = document.createElement(this.props.rendering === 'canvas' ? 'canvas' : 'div')
@@ -119,7 +124,12 @@ class Score extends Component {
   }
 
   componentDidUpdate (prevProps, prevState) {
-    if (prevProps.songcheat !== this.props.songcheat || !Utils.arraysEqual(prevProps.units, this.props.units)) {
+    if (prevProps.songcheat !== this.props.songcheat ||
+      prevProps.staveMode !== this.props.staveMode ||
+      prevProps.showLyrics !== this.props.showLyrics ||
+      prevProps.showStrokes !== this.props.showStrokes ||
+      prevProps.separateUnits !== this.props.separateUnits ||
+      !Utils.arraysEqual(prevProps.units, this.props.units)) {
       if (prevProps.filename !== this.props.filename) console.warn('[Score.jsx] Vextabbing because new file was loaded')
       else if (prevProps.songcheat !== this.props.songcheat) console.warn('[Score.jsx] Vextabbing because songcheat changed')
       else if (!Utils.arraysEqual(prevProps.units, this.props.units)) console.warn('[Score.jsx] Vextabbing because units changed')
@@ -131,6 +141,30 @@ class Score extends Component {
 
   render () {
     return (<div className='Score' ref={div => { this.rootDiv = div }}>
+
+      <Select
+        value={this.props.staveMode}
+        onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('staveMode', selectedOption.value) }}
+        options={[
+        { value: '', label: 'Default stave mode (as set by author)' },
+        { value: 'n', label: 'Notation' },
+        { value: 'nt', label: 'Notation and tablature' },
+        { value: 'nts', label: 'Notation and tablature with stems (up)' },
+        { value: 'ntsd', label: 'Notation and tablature with stems (down)' },
+        { value: 't', label: 'Tablature' },
+        { value: 'ts', label: 'Tablature with stems (up)' },
+        { value: 'tsd', label: 'Tablature with stems (down)' },
+        { value: 'r', label: 'Rhythm' },
+        { value: 'rt', label: 'Rhythm and tablature' }
+        ]}
+      />
+      <Checkbox onChange={(e) => this.props.optionChanged('showStrokes', e.checked)} checked={this.props.showStrokes} />
+      <label>Show strokes</label>
+      <Checkbox onChange={(e) => this.props.optionChanged('showLyrics', e.checked)} checked={this.props.showLyrics} />
+      <label>Show lyrics</label>
+      <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />
+      <label>Separate units</label>
+
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
       {this.state.warnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}

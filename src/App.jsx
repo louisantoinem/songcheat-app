@@ -62,6 +62,9 @@ class App extends Component {
     settings = settings ? JSON.parse(settings) : {
       'Chords.showInline': false,
       'Rhythm.showInline': false,
+      'Ascii.split': 0,
+      'Ascii.maxConsecutiveSpaces': 1,
+      'Score.staveMode': '',
       'Score.separateUnits': false,
       'Score.showLyrics': true,
       'Score.showStrokes': false
@@ -332,16 +335,21 @@ class App extends Component {
             onShowInline={showInline => this.updateSetting('Rhythm.showInline', showInline)} />
           <Ascii label='Text'
             songcheat={this.state.songcheat}
-            units={this.state.songcheat ? this.state.songcheat.structure : []} />
+            units={this.state.songcheat ? this.state.songcheat.structure : []}
+            split={this.state.settings.get('Ascii.split')}
+            maxConsecutiveSpaces={this.state.settings.get('Ascii.maxConsecutiveSpaces')}
+            optionChanged={(key, value) => this.updateSetting('Ascii.' + key, value)} />
           <Score label='Score'
             rendering='canvas'
             audioCtx={this.audioCtx}
             songcheat={this.state.songcheat}
             units={this.state.songcheat ? this.state.songcheat.structure : []}
+            staveMode={this.state.settings.get('Score.staveMode')}
             separateUnits={this.state.settings.get('Score.separateUnits')}
             showLyrics={this.state.settings.get('Score.showLyrics')}
             showStrokes={this.state.settings.get('Score.showStrokes')}
-            filename={this.state.filename} />
+            filename={this.state.filename}
+            optionChanged={(key, value) => this.updateSetting('Score.' + key, value)} />
           {this.state.editMode && <Editor {...this.props}
             label='Editor'
             width='100%'
