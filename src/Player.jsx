@@ -90,7 +90,7 @@ class PlayerUI extends Component {
       </span>
 
       {this.player &&
-      <div className='controls'>
+      <div className='controls'>{this.player.minutes()}:{(this.player.seconds() + '').padStart(2, '0')}
         {this.player.stopped || this.player.paused ? <a onClick={() => this.play()}>&#9658;</a> : null}
         {this.player.stopped || this.player.paused ? null : <a onClick={() => this.pause()}>&#10074;&#10074;</a>}
         {this.player.stopped ? null : <a onClick={() => this.stop()}>&#9724;</a>}
