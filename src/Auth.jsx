@@ -1,4 +1,5 @@
 import React, {Component} from 'react'
+import { Link } from 'react-router-dom'
 
 // css
 import './Auth.css'
@@ -27,6 +28,7 @@ export default class Auth extends Component {
       window.location.reload()
     })
     return (<div className='Auth'>
+      { this.props.match.params._id && <div className='home-link'><Link to={'/'}>&#8249; Back to list</Link></div> }
       { authed && <div className='login-header'>
         { this.state.userData && this.state.userData.picture ? <img alt='profile' src={this.state.userData.picture} className='profile-pic' /> : null }
         <span className='login-text'>

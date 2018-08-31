@@ -1,7 +1,7 @@
 .Auth {
   background-color: #313131;
   color: white;
-  padding: 3px 10px;
+  padding: 3px;
   text-align: right;
 
   .logout {
@@ -11,6 +11,20 @@
 
     &:hover {
       text-decoration: underline;
+    }
+  }
+
+  .home-link {
+    float: left;
+    text-align: left;
+    padding-top: 5px;
+    font-size: 0.95em;
+
+    a,
+    a:visited {
+      text-decoration: none;
+      color: white;
+      margin-left: 5px;
     }
   }
 
