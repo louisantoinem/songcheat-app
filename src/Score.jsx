@@ -56,7 +56,7 @@ class Score extends Component {
 
     // convert unit to vextab scores
     let barsPerLine = Math.max(1, Math.floor(W / 500)) // Utils.prevPowerOf2(W / 300)
-    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, this.props.staveMode, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, MAX_STAVES_PER_SCORE) })
+    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, this.props.staveMode, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, this.props.showAccents, MAX_STAVES_PER_SCORE) })
     scores.forEach((score, scoreIndex) => {
       // create canvas or div (for svg)
       let canvas = document.createElement(this.props.rendering === 'canvas' ? 'canvas' : 'div')
@@ -128,6 +128,7 @@ class Score extends Component {
       prevProps.staveMode !== this.props.staveMode ||
       prevProps.showLyrics !== this.props.showLyrics ||
       prevProps.showStrokes !== this.props.showStrokes ||
+      prevProps.showAccents !== this.props.showAccents ||
       prevProps.separateUnits !== this.props.separateUnits ||
       !Utils.arraysEqual(prevProps.units, this.props.units)) {
       if (prevProps.filename !== this.props.filename) console.warn('[Score.jsx] Vextabbing because new file was loaded')
@@ -160,6 +161,8 @@ class Score extends Component {
       />
       <Checkbox onChange={(e) => this.props.optionChanged('showStrokes', e.checked)} checked={this.props.showStrokes} />
       <label>Show strokes</label>
+      <Checkbox onChange={(e) => this.props.optionChanged('showAccents', e.checked)} checked={this.props.showAccents} />
+      <label>Show accents</label>
       <Checkbox onChange={(e) => this.props.optionChanged('showLyrics', e.checked)} checked={this.props.showLyrics} />
       <label>Show lyrics</label>
       <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />

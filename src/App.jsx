@@ -67,7 +67,8 @@ class App extends Component {
       'Score.staveMode': '',
       'Score.separateUnits': false,
       'Score.showLyrics': true,
-      'Score.showStrokes': false
+      'Score.showStrokes': false,
+      'Score.showAccents': false
     }
 
     // load stored source, mode and filename if any
@@ -348,6 +349,7 @@ class App extends Component {
             separateUnits={this.state.settings.get('Score.separateUnits')}
             showLyrics={this.state.settings.get('Score.showLyrics')}
             showStrokes={this.state.settings.get('Score.showStrokes')}
+            showAccents={this.state.settings.get('Score.showAccents')}
             filename={this.state.filename}
             optionChanged={(key, value) => this.updateSetting('Score.' + key, value)} />
           {this.state.editMode && <Editor {...this.props}
