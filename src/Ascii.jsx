@@ -5,6 +5,7 @@ import {Utils, Ascii as AsciiAPI, AsciiException} from 'songcheat-core'
 
 // 3rd party components
 import {RadioButton} from 'primereact/components/radiobutton/RadioButton'
+import {Button} from 'primereact/components/button/Button'
 import Select from 'react-select'
 
 // css
@@ -82,10 +83,20 @@ class Ascii extends Component {
       <label>Compact </label>
       <RadioButton onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 0)} checked={this.props.maxConsecutiveSpaces === 0} />
       <label>Respect chord durations</label>
+      <label >&nbsp;</label>
+      <label >&nbsp;</label>
+      <Button className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)}>-</Button>
+      <label className='IncDec'>A</label>
+      <Button className='IncDec' onClick={() => this.props.optionChanged('fontSize', Utils.round(this.props.fontSize + 0.1, 1))}>+</Button>
+      <label >&nbsp;</label>
+      <label >&nbsp;</label>
+      <Button className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount > 1 ? this.props.columnCount - 1 : 1)}>-</Button>
+      <label className='IncDec'>&#9776;</label>
+      <Button className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount + 1)}>+</Button>
 
-      <div className='Ascii' style={{ columns: (((this.props.split % 10) || 2) * (this.props.maxConsecutiveSpaces === 1 || this.props.split > 10 ? 375 : 700)) + 'px' }}>
+      <div className='Ascii' style={{ fontSize: this.props.fontSize + 'em', columnCount: this.props.columnCount }}>
         {
-        this.props.units.map((unit, index) => <div key={index}>
+        this.props.units.map((unit, index) => <div key={index} style={{ marginBottom: (2.5 * this.props.fontSize) + 'em'}}>
           {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
           <p style={{color: unit.part.color}}>[{unit.name}]</p>
           <div dangerouslySetInnerHTML={{__html: this.props.split > 10 ? this.state.texts_structure[index] : this.state.texts[index]}} />

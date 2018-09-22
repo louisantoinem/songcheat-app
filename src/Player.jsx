@@ -1,7 +1,10 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, Player, Score} from 'songcheat-core'
+import {Utils, Duration, Player, Score, waveTables} from 'songcheat-core'
+
+// 3rd party components
+import {RadioButton} from 'primereact/components/radiobutton/RadioButton'
 
 // css
 import './Player.css'
@@ -30,7 +33,7 @@ class PlayerUI extends Component {
       if (this.player) this.player.stop()
       this.player = new Player(this.props.audioCtx, score, {
         loop: this.props.rhythm,
-        capo: parseInt(this.props.songcheat.capo, 10),
+        fretboard: this.props.songcheat.fretboard,
         signature: this.props.songcheat.signature,
         type: this.props.songcheat.wave,
         onDone: () => this.setState({note: null}),
@@ -65,6 +68,18 @@ class PlayerUI extends Component {
   volume (volume) {
     this.player.setVolume(parseInt(volume, 10))
     this.forceUpdate()
+  }
+
+  toggleShuffle () {
+    this.player.shuffle = this.player.shuffle ? null : new Duration(this.props.songcheat.signature.shuffle)
+    this.forceUpdate()
+  }
+
+  getWaveformOptions () {
+    let options = []
+    for (let type of ['sine', 'square', 'sawtooth', 'triangle']) options.push(<option key={type} value={type}>({type})</option>)
+    for (let instrument in waveTables) options.push(<option key={instrument} value={instrument}>{instrument}</option>)
+    return options
   }
 
   componentDidUpdate (prevProps, prevState) {
@@ -111,6 +126,22 @@ class PlayerUI extends Component {
           <label>Volume: </label>
           <input type='range' min='0' max='100' value={this.player.volume} onInput={(e) => this.volume(e.target.value)} onChange={(e) => this.volume(e.target.value)} />
         </div>
+
+        <div>
+          <label>Wave form: </label>
+          <select
+            value={this.player.type}
+            onChange={(event) => { this.player.setType(event.target.value); this.forceUpdate() }}>
+            {this.getWaveformOptions()}
+          </select>
+        </div>
+
+        {Duration.valid(this.props.songcheat.signature.shuffle) && <div>
+          <RadioButton onChange={() => this.toggleShuffle()} checked={this.player.shuffle !== null} />
+          <label>Shuffle On </label>
+          <RadioButton onChange={() => this.toggleShuffle()} checked={this.player.shuffle === null} />
+          <label>Shuffle Off</label>
+        </div>}
 
       </div>)}
 

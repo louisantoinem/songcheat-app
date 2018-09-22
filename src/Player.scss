@@ -46,18 +46,18 @@
     > div {
       margin-top: 10px;
 
-      label {
+      > label {
         font-size: 0.85em;
         vertical-align: top;
       }
 
-      span {
+      > span {
         font-size: 0.9em;
         font-weight: bold;
         padding-left: 10px;
       }
 
-      a {
+      > a {
         font-size: 0.9em;
         padding-left: 10px;
       }

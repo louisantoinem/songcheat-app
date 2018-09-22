@@ -57,19 +57,26 @@ class App extends Component {
       true: layoutEdit ? Layout.fromString(layoutEdit) : this.defaultLayout(true)
     }
 
-    // load stored settings if any
-    let settings = localStorage.getItem('SongCheat.App.Settings')
-    settings = settings ? JSON.parse(settings) : {
+    let defaultSettings = {
       'Chords.showInline': false,
       'Rhythm.showInline': false,
       'Ascii.split': 0,
       'Ascii.maxConsecutiveSpaces': 1,
+      'Ascii.fontSize': 1.0,
+      'Ascii.columnCount': 2,
       'Score.staveMode': '',
       'Score.separateUnits': false,
       'Score.showLyrics': true,
       'Score.showStrokes': false,
       'Score.showAccents': false
     }
+
+    // load stored settings if any
+    let settings = localStorage.getItem('SongCheat.App.Settings')
+    settings = settings ? JSON.parse(settings) : defaultSettings
+
+    // if new settings have been added since they were stored, use their default value
+    for (let k in defaultSettings) if (typeof settings[k] === 'undefined') settings[k] = defaultSettings[k]
 
     // load stored source, mode and filename if any
     let source = '' // localStorage.getItem('SongCheat.App.Source')
@@ -339,6 +346,8 @@ class App extends Component {
             units={this.state.songcheat ? this.state.songcheat.structure : []}
             split={this.state.settings.get('Ascii.split')}
             maxConsecutiveSpaces={this.state.settings.get('Ascii.maxConsecutiveSpaces')}
+            fontSize={this.state.settings.get('Ascii.fontSize')}
+            columnCount={this.state.settings.get('Ascii.columnCount')}
             optionChanged={(key, value) => this.updateSetting('Ascii.' + key, value)} />
           <Score label='Score'
             rendering='canvas'

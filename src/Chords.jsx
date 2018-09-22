@@ -21,7 +21,7 @@ class Chords extends Component {
 
   chordImage (chord) {
     try {
-      return <img alt={chord.tablature} title={chord.comment} src={ChordPix.url(chord, 175)} />
+      return <img alt={chord.tablature} title={this.props.songcheat ? this.props.songcheat.fretboard.chordPitches(chord) : chord.comment} src={ChordPix.url(chord, 175)} />
     } catch (e) {
       return <p className='error' style={{ margin: '12px' }}>{e.message}</p>
     }
