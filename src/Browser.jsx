@@ -44,6 +44,9 @@ export default class Browser extends Component {
   }
 
   render () {
+    // set document title
+    document.title = 'SongCheat'
+
     return (<div className='Index' >
       { this.props.authed() && this.state.myData &&
         <div>
