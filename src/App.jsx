@@ -209,7 +209,8 @@ class App extends Component {
       source: this.state.source,
       artist: this.state.songcheat ? this.state.songcheat.artist : null,
       year: this.state.songcheat ? this.state.songcheat.year : null,
-      title: this.state.songcheat ? this.state.songcheat.title : '(unkown)',
+      title: this.state.songcheat && this.state.songcheat.title ? this.state.songcheat.title : '(unkown title)',
+      type: this.state.songcheat && this.state.songcheat.type ? this.state.songcheat.type : '(unkown type)',
       last_modified: new Date()
     }
 

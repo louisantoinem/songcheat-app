@@ -15,7 +15,7 @@ ace.define('ace/mode/songcheat_highlight_rules', ['require', 'exports', 'module'
         regex: '^$'
       },
         { token: 'keyword',
-          regex: '^(?:ARTIST|TITLE|YEAR|DIFFICULTY|VIDEO|SOURCE|TUTORIAL|COMMENT|MODE|TUNING|CAPO|KEY|TIME|TEMPO|SHUFFLE|CHORD|BLOCK|STRUCTURE|RHYTHM|PART)'
+          regex: '^(?:ARTIST|TITLE|YEAR|TYPE|DIFFICULTY|VIDEO|SOURCE|TUTORIAL|COMMENT|MODE|TUNING|CAPO|KEY|TIME|TEMPO|SHUFFLE|CHORD|BLOCK|STRUCTURE|RHYTHM|PART)'
         },
         { token: 'comment',
           regex: '^ *#.*$'
