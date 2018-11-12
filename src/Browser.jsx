@@ -60,9 +60,10 @@ export default class Browser extends Component {
 
   itemTemplate (item) {
     if (!item) return
+    let daysOld = Math.round(Math.abs(((new Date()).getTime() - item.last_modified.getTime()) / (24 * 60 * 60 * 1000)))
     let str = (item.artist ? item.artist + ' - ' : '') + item.title + (item.year ? ' (' + item.year + ')' : '')
     return (
-      <div className='item' key={item._id}>
+      <div className={'item' + (daysOld <= 7 ? ' new week' : (daysOld <= 30 ? ' new month' : ''))} key={item._id}>
         <Link to={'/' + item._id}>{str}</Link>
       </div>
     )
