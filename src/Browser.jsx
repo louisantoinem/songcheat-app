@@ -85,14 +85,14 @@ export default class Browser extends Component {
     document.title = 'SongCheat'
 
     return (<div className='Index' >
-      { this.props.authed() && this.state.myData && this.state.myData.length > 0 &&
+      { this.props.authed() && this.state.myData &&
         <div>
           <h1>My SongCheats ({this.state.myData.length})</h1>
           <Route render={({ history}) => <Button label='Create' icon='fa-plus' className='new' onClick={() => { history.push('/new') }} />} />
           { this.items(this.state.myData.dataByType) }
         </div>
       }
-      { this.state.allData && this.state.allData.length > 0 &&
+      { this.state.allData &&
         <div>
           { this.props.authed() && <h1>Other SongCheats ({this.state.allData.length})</h1> }
           { !this.props.authed() && <h1>All SongCheats ({this.state.allData.length})</h1> }
