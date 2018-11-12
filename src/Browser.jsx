@@ -39,11 +39,12 @@ export default class Browser extends Component {
     for (let item of data) {
       let type = item.type || '(unknown type)'
       if (type !== lastType) {
-        groupedData.dataByType.set(type, [])
+        groupedData.dataByType.set(type, { artists: new Map(), items: [] })
         lastType = type
       }
 
-      groupedData.dataByType.get(type).push(item)
+      groupedData.dataByType.get(type).items.push(item)
+      groupedData.dataByType.get(type).artists.set(item.artist, 1)
     }
 
     // sort types by descending number of items
@@ -51,7 +52,7 @@ export default class Browser extends Component {
       Array
         .from(groupedData.dataByType)
         .sort((a, b) => {
-          return b[1].length - a[1].length
+          return b[1].items.length - a[1].items.length
         })
     )
 
@@ -73,8 +74,9 @@ export default class Browser extends Component {
     let items = []
     for (let row of data) {
       items.push(<div className='items' key={row[0]}>
-        <h3>{row[0]} ({row[1].length})</h3>
-        { row[1].map(item => { return this.itemTemplate(item) }) }
+        <h3>{row[0]}</h3>
+        <h4>{row[1].items.length} {row[1].items.length > 1 ? 'titles' : 'title'} / {row[1].artists.size} {row[1].artists.size > 1 ? 'artists' : 'artist'}</h4>
+        { row[1].items.map(item => { return this.itemTemplate(item) }) }
       </div>)
     }
     return items
