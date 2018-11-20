@@ -16,7 +16,16 @@
       font-size: 0.9em;
     }
 
-    &.new:after {
+    &.created,
+    &.last_modified {
+      background-color: #2399e5;
+
+      a {
+        color: white;
+      }
+    }
+
+    &.created:after {
       content: "";
       position: absolute;
       height: 100%;
@@ -27,14 +36,7 @@
       background-position: top center;
       background-repeat: no-repeat;
       opacity: 0.85;
-    }
-
-    &.new.week:after {
       background-image: radial-gradient(circle at center, red 5px, transparent 5px);
-    }
-
-    &.new.month:after {
-      background-image: radial-gradient(circle at center, orange 5px, transparent 5px);
     }
 
     &:hover {

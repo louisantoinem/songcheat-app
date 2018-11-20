@@ -216,11 +216,12 @@ class App extends Component {
 
     try {
       if (this._id) {
-        let updated = await this.songcheats.updateOne({ '_id': this._id }, document)
+        let updated = await this.songcheats.updateOne({ '_id': this._id }, { '$set': document })
         console.warn(`Updated ${updated.matchedCount} document`)
         if (updated.matchedCount === 0) throw new Error(`ID ${this._id} not found`)
         this.growl.show({ severity: 'success', summary: 'SongCheat saved', detail: `Sucessfully saved songcheat ${this.defaultFilename()}` })
       } else {
+        document.created = new Date()
         let inserted = await this.songcheats.insertOne(document)
         console.warn(`Inserted document with _id ${inserted.insertedId}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
