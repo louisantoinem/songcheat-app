@@ -4,7 +4,6 @@ import React, {Component} from 'react'
 import {Utils, Ascii as AsciiAPI, AsciiException} from 'songcheat-core'
 
 // 3rd party components
-import {RadioButton} from 'primereact/components/radiobutton/RadioButton'
 import {Button} from 'primereact/components/button/Button'
 import Select from 'react-select'
 
@@ -79,20 +78,20 @@ class Ascii extends Component {
           { value: 14, label: 'Structure by 4 bars' }
         ]}
       />
-      <RadioButton onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 1)} checked={this.props.maxConsecutiveSpaces === 1} />
+      <input type='radio' onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 1)} checked={this.props.maxConsecutiveSpaces === 1} />
       <label>Compact </label>
-      <RadioButton onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 0)} checked={this.props.maxConsecutiveSpaces === 0} />
+      <input type='radio' onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 0)} checked={this.props.maxConsecutiveSpaces === 0} />
       <label>Respect chord durations</label>
       <label >&nbsp;</label>
       <label >&nbsp;</label>
-      <Button className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)}>-</Button>
+      <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)} />
       <label className='IncDec'>A</label>
-      <Button className='IncDec' onClick={() => this.props.optionChanged('fontSize', Utils.round(this.props.fontSize + 0.1, 1))}>+</Button>
+      <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('fontSize', Utils.round(this.props.fontSize + 0.1, 1))} />
       <label >&nbsp;</label>
       <label >&nbsp;</label>
-      <Button className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount > 1 ? this.props.columnCount - 1 : 1)}>-</Button>
+      <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount > 1 ? this.props.columnCount - 1 : 1)} />
       <label className='IncDec'>&#9776;</label>
-      <Button className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount + 1)}>+</Button>
+      <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount + 1)} />
 
       <div className='Ascii' style={{ fontSize: this.props.fontSize + 'em', columnCount: this.props.columnCount }}>
         {

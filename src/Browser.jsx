@@ -94,7 +94,7 @@ export default class Browser extends Component {
       { this.props.authed() && this.state.myData &&
         <div>
           <h1>My SongCheats ({this.state.myData.length})</h1>
-          <Route render={({ history}) => <Button label='Create' icon='fa-plus' className='new' onClick={() => { history.push('/new') }} />} />
+          <Route render={({ history}) => <Button label='Create' icon='fa fa-plus' className='new' onClick={() => { history.push('/new') }} />} />
           { this.items(this.state.myData.dataByType) }
         </div>
       }
