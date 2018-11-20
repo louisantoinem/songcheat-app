@@ -21,19 +21,19 @@ class LayoutMenu extends Component {
     let items = []
 
     if (this.props.siblingIsLeave) {
-      items.push({ icon: 'fa-arrow-circle-o-' + this.props.siblingDirection, label: 'Move ' + Utils.camelCase(this.props.siblingDirection), command: () => { this.props.onMove() }})
+      items.push({ icon: 'fa fa-arrow-circle-o-' + this.props.siblingDirection, label: 'Move ' + Utils.camelCase(this.props.siblingDirection), command: () => { this.props.onMove() }})
     }
 
     if (this.props.nbComponents > 1) {
       let splitItems = []
       for (let direction of ['left', 'right', 'up', 'down']) {
         splitItems.push({
-          icon: 'fa-caret-square-o-' + direction,
+          icon: 'fa fa-caret-square-o-' + direction,
           label: Utils.camelCase(LayoutMenu._d(direction), true) + ' panel',
           command: () => { this.props.onSplit(direction) }
         })
       }
-      items.push({ icon: 'fa-code-fork', label: 'Detach to new panel', items: splitItems })
+      items.push({ icon: 'fa fa-code-fork', label: 'Detach to new panel', items: splitItems })
     }
 
     return items.length === 0 ? null : <div style={{margin: '25px'}}><Menubar model={items} /></div>
