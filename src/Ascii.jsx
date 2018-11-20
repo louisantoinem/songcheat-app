@@ -5,6 +5,7 @@ import {Utils, Ascii as AsciiAPI, AsciiException} from 'songcheat-core'
 
 // 3rd party components
 import {Button} from 'primereact/components/button/Button'
+import {Checkbox} from 'primereact/components/checkbox/Checkbox'
 import Select from 'react-select'
 
 // css
@@ -78,10 +79,8 @@ class Ascii extends Component {
           { value: 14, label: 'Structure by 4 bars' }
         ]}
       />
-      <input type='radio' onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 1)} checked={this.props.maxConsecutiveSpaces === 1} />
-      <label>Compact </label>
-      <input type='radio' onChange={() => this.props.optionChanged('maxConsecutiveSpaces', 0)} checked={this.props.maxConsecutiveSpaces === 0} />
-      <label>Respect chord durations</label>
+      <Checkbox onChange={(e) => this.props.optionChanged('maxConsecutiveSpaces', e.checked ? 0 : 1)} checked={this.props.maxConsecutiveSpaces === 0} />
+      <label>Respect durations</label>
       <label >&nbsp;</label>
       <label >&nbsp;</label>
       <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)} />
