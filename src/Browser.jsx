@@ -5,6 +5,9 @@ import { Link, Route } from 'react-router-dom'
 // prime react components
 import { Button } from 'primereact/components/button/Button'
 
+// 3rd party packages
+import timeago from 'time-ago'
+
 // css
 import './Browser.css'
 import 'primereact/resources/primereact.min.css'
@@ -65,7 +68,7 @@ export default class Browser extends Component {
     let last_modified_days = Math.round(Math.abs(((new Date()).getTime() - item.last_modified.getTime()) / (24 * 60 * 60 * 1000)))
     let str = (item.artist ? item.artist + ' - ' : '') + item.title + (item.year ? ' (' + item.year + ')' : '')
     return (
-      <div className={'item' + (created_days <= 30 ? ' created' : '') + (last_modified_days <= 30 ? ' last_modified' : '')} key={item._id}>
+      <div title={'Created ' + timeago.ago(item.created) + ' / Modified ' + timeago.ago(item.last_modified)} className={'item' + (created_days <= 30 ? ' created' : '') + (last_modified_days <= 30 ? ' last_modified' : '')} key={item._id}>
         <Link to={'/' + item._id}>{str}</Link>
       </div>
     )
