@@ -4,39 +4,53 @@
 
   .item {
     margin: 5px;
-    padding: 3px 5px;
+    padding: 4px 6px;
     border: 1px solid #ccc;
     border-radius: 10px;
-    display: inline-block;
+    display: block;
     position: relative;
 
     a {
       color: black;
       text-decoration: none;
       font-size: 0.9em;
+
+      span {
+        display: block;
+      }
+
+      span.artist {
+        font-weight: bold;
+        font-size: 0.85em;
+      }
+
+      span.title {
+        margin-top: 5px;
+      }
+
+      span.info {
+        font-size: 0.7em;
+        margin-top: 5px;
+      }
     }
 
     &.created,
     &.last_modified {
-      background-color: #47a9eb;
+      border-color: #2399e5;
 
       a {
-        color: white;
+        color: #2399e5;
       }
     }
 
     &.created:after {
-      content: "";
+      content: "NEW";
       position: absolute;
-      height: 100%;
-      width: 10px;
-      top: -10px;
-      right: -2px;
-      background-size: 20px 20px;
-      background-position: top center;
-      background-repeat: no-repeat;
-      opacity: 0.85;
-      background-image: radial-gradient(circle at center, red 5px, transparent 5px);
+      top: 5px;
+      right: 5px;
+      font-size: 0.5em;
+      font-weight: bold;
+      color: red;
     }
 
     &:hover {

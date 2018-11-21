@@ -66,10 +66,13 @@ export default class Browser extends Component {
     if (!item) return
     let created_days = Math.round(Math.abs(((new Date()).getTime() - item.created.getTime()) / (24 * 60 * 60 * 1000)))
     let last_modified_days = Math.round(Math.abs(((new Date()).getTime() - item.last_modified.getTime()) / (24 * 60 * 60 * 1000)))
-    let str = (item.artist ? item.artist + ' - ' : '') + item.title + (item.year ? ' (' + item.year + ')' : '')
     return (
       <div title={'Created ' + timeago.ago(item.created) + ' / Modified ' + timeago.ago(item.last_modified)} className={'item' + (created_days <= 30 ? ' created' : '') + (last_modified_days <= 30 ? ' last_modified' : '')} key={item._id}>
-        <Link to={'/' + item._id}>{str}</Link>
+        <Link to={'/' + item._id}>
+          <span className='artist'>{item.artist + (item.year ? ' (' + item.year + ')' : '')}</span>
+          <span className='title'>{item.title}</span>
+          <span className='info'><i className='fa fa-edit' /> {timeago.ago(item.last_modified)}</span>
+        </Link>
       </div>
     )
   }
