@@ -30,8 +30,11 @@ class Ascii extends Component {
     for (let unit of this.props.units) {
       try {
         let chordColorizer = line => { return `<span style='color: ${unit.part.color}'>${line}</span>` }
-        texts.push(this.ascii.getUnitText(unit, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
-        texts_structure.push(this.ascii.getPartText(unit.part, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
+        if (this.props.split === 0) texts.push(this.ascii.getUnitText(unit, 1, 0, false, chordColorizer))
+        else {
+          texts.push(this.ascii.getUnitText(unit, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
+          texts_structure.push(this.ascii.getPartText(unit.part, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
+        }
       } catch (e) {
         if (!(e instanceof AsciiException)) {
           console.error(e)
@@ -79,8 +82,8 @@ class Ascii extends Component {
           { value: 14, label: 'Structure by 4 bars' }
         ]}
       />
-      <Checkbox onChange={(e) => this.props.optionChanged('maxConsecutiveSpaces', e.checked ? 0 : 1)} checked={this.props.maxConsecutiveSpaces === 0} />
-      <label>Respect durations</label>
+      { this.props.split > 0 && <Checkbox onChange={(e) => this.props.optionChanged('maxConsecutiveSpaces', e.checked ? 0 : 1)} checked={this.props.maxConsecutiveSpaces === 0} /> }
+      { this.props.split > 0 && <label>Respect durations</label> }
       <label >&nbsp;</label>
       <label >&nbsp;</label>
       <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)} />
