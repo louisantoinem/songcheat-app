@@ -1,13 +1,13 @@
 .Index {
   position: relative;
-  padding-left: 10px;
+  padding: 0 10px;
 
   .item {
     margin: 5px;
     padding: 4px 6px;
     border: 1px solid #ccc;
     border-radius: 10px;
-    display: block;
+    display: inline-block;
     position: relative;
 
     a {
@@ -41,6 +41,10 @@
       a {
         color: #2399e5;
       }
+    }
+
+    &.created a span.artist {
+      margin-right: 25px;
     }
 
     &.created:after {
