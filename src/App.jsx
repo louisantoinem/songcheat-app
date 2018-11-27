@@ -187,7 +187,7 @@ class App extends Component {
     this.recompileTimer = setTimeout(() => this.songcheat(source), ms)
   }
 
-  async onSave (source, filename) {
+  async onSave (source, filename, quiet) {
 /*
     if (!this.state.songcheat) {
       this.growl.show({ severity: 'warn', summary: 'SongCheat must be fixed', detail: `Please fix all errors before saving your SongCheat` })
@@ -195,14 +195,14 @@ class App extends Component {
     }
 */
     // logged in: insert or update mongodb document
-    if (this.props.authed()) return this.save()
+    if (this.props.authed()) return this.save(quiet)
 
     // not logged in: download text file
     let blob = new Blob([source], { type: 'text/plain;charset=utf-8' })
     saveAs(blob, filename)
   }
 
-  async save () {
+  async save (quiet) {
     if (!this.props.authed()) throw new Error('Cannot save songcheat: not logged in')
 
     let document = {
@@ -211,18 +211,19 @@ class App extends Component {
       artist: this.state.songcheat ? this.state.songcheat.artist : null,
       year: this.state.songcheat ? this.state.songcheat.year : null,
       title: this.state.songcheat && this.state.songcheat.title ? this.state.songcheat.title : '(unkown title)',
-      type: this.state.songcheat && this.state.songcheat.type ? this.state.songcheat.type : '(unkown type)',
-      last_modified: new Date()
+      type: this.state.songcheat && this.state.songcheat.type ? this.state.songcheat.type : '(unkown type)'
     }
 
     try {
       if (this._id) {
+        if (!quiet) document.last_modified = new Date()
         let updated = await this.songcheats.updateOne({ '_id': this._id }, { '$set': document })
         console.warn(`Updated ${updated.matchedCount} document`)
         if (updated.matchedCount === 0) throw new Error(`ID ${this._id} not found`)
         this.growl.show({ severity: 'success', summary: 'SongCheat saved', detail: `Sucessfully saved songcheat ${this.defaultFilename()}` })
       } else {
         document.created = new Date()
+        document.last_modified = new Date()
         let inserted = await this.songcheats.insertOne(document)
         console.warn(`Inserted document with _id ${inserted.insertedId}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
@@ -372,7 +373,7 @@ class App extends Component {
             defaultFilename={() => { return this.defaultFilename() }}
             onFilenameChanged={filename => this.updateFilename(filename)}
             onChange={source => this.onChange(source)}
-            onSave={(source, filename) => this.onSave(source, filename)} />}
+            onSave={(source, filename, quiet) => this.onSave(source, filename, quiet)} />}
         </Patchwork>
 
       </Dropzone>

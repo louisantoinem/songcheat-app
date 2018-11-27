@@ -9,6 +9,20 @@ import 'brace/theme/chrome'
 
 class Editor extends Component {
 
+  saveAs (editor, quiet) {
+    if (this.props.filename) this.props.onSave(editor.getValue(), this.props.filename, quiet)
+    else {
+      let filename = this.props.defaultFilename ? this.props.defaultFilename() + '.txt' : 'untitled.txt'
+      if (this.props.authed()) this.props.onSave(editor.getValue(), filename, quiet)
+      else {
+        Popup.plugins().prompt('Enter filename', filename, 'Type your name', value => {
+          this.props.onSave(editor.getValue(), value, quiet)
+          this.props.onFilenameChanged(value)
+        })
+      }
+    }
+  }
+
   componentDidMount () {
     // auto focus
     this.editor.focus()
@@ -17,19 +31,14 @@ class Editor extends Component {
     this.editor.commands.addCommand({
       name: 'saveAs',
       bindKey: {win: 'Ctrl-s', mac: 'Command-s'},
-      exec: editor => {
-        if (this.props.filename) this.props.onSave(editor.getValue(), this.props.filename)
-        else {
-          let filename = this.props.defaultFilename ? this.props.defaultFilename() + '.txt' : 'untitled.txt'
-          if (this.props.authed()) this.props.onSave(editor.getValue(), filename)
-          else {
-            Popup.plugins().prompt('Enter filename', filename, 'Type your name', value => {
-              this.props.onSave(editor.getValue(), value)
-              this.props.onFilenameChanged(value)
-            })
-          }
-        }
-      }
+      exec: editor => this.saveAs(editor)
+    })
+
+    // add "quiet save" command (don't update last_modified)
+    this.editor.commands.addCommand({
+      name: 'quietSaveAs',
+      bindKey: {win: 'Ctrl-Shift-s', mac: 'Command-Shift-s'},
+      exec: editor => this.saveAs(editor, true)
     })
   }
 
