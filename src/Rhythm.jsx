@@ -51,6 +51,26 @@ class Rhythm extends Component {
     // convert rhythm to vextab score
     let score = Utils.BM('[Rhythm.jsx] Rhythm ' + rhythm.name + ': SongcheatVexTab.Rhythm2VexTab', () => { return SongcheatVexTab.Rhythm2VexTab(this.props.songcheat, rhythm) })
 
+    // if a previous rhythm had the same VexTab representation (ignoring the rhythm name) ...
+    let anonScore = score.replace('[Rhythm ' + rhythm.name + ']', '')
+    let o = this.scores.get(anonScore)
+    if (o) {
+      // then hide this canvas
+      document.getElementById('container.r.' + rhythm.id).style.display = 'none'
+
+      // and clear/redraw original canvas with concatenated rhythm names
+      canvas = o.canvas
+      if (this.props.rendering !== 'canvas') while (canvas.firstChild) canvas.removeChild(canvas.firstChild)
+      o.rhythm.name += ' & ' + rhythm.name
+      score = score.replace('[Rhythm ' + rhythm.name + ']', '[Rhythm ' + o.rhythm.name + ']')
+    } else {
+      // else unhide canvas if needed
+      document.getElementById('container.r.' + rhythm.id).style.display = ''
+
+      // and remember this as an original rhythm
+      this.scores.set(anonScore, {canvas, rhythm})
+    }
+
     // parse and render score with vextab
     let artist = new Artist(10, 10, W, {scale: 1.0})
     let vextab = new VexTab(artist)
@@ -64,6 +84,8 @@ class Rhythm extends Component {
     let errors = []
     let warnings = []
     let hasInline = false
+
+    this.scores = new Map()
 
     if (this.props.songcheat && this.rootDiv) {
       let W = this.rootDiv.offsetWidth - 20
@@ -121,7 +143,7 @@ class Rhythm extends Component {
       {!this.props.rhythms && this.props.songcheat && <h3>Tempo: {this.props.songcheat.signature.tempo} bpm</h3>}
       {!this.props.rhythms && <h3>Rhythms used in this song:</h3>}
 
-      {this.rhythms().map(rhythm => (this.props.showInline || !rhythm.inline) && <div key={rhythm.id}>
+      {this.rhythms().map(rhythm => (this.props.showInline || !rhythm.inline) && <div key={rhythm.id} id={'container.r.' + rhythm.id}>
         <Player audioCtx={this.props.audioCtx} rhythm songcheat={this.props.songcheat} units={[compiler.getRhythmUnit(this.props.songcheat, rhythm)]} />
         <div id={'div.r.' + rhythm.id} >
           {this.props.rendering === 'canvas' &&
