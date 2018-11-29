@@ -1,6 +1,6 @@
 .Index {
   position: relative;
-  padding: 0 10px;
+  padding: 10px;
 
   .item {
     margin: 5px;
@@ -70,11 +70,5 @@
     h4 {
       font-size: 0.8em;
     }
-  }
-
-  button.new {
-    position: absolute;
-    top: 5px;
-    left: 350px;
   }
 }

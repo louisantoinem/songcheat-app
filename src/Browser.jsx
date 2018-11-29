@@ -1,12 +1,18 @@
 // react
 import React, { Component } from 'react'
 import { Link, Route } from 'react-router-dom'
+import { Map } from 'immutable'
 
 // prime react components
 import { Button } from 'primereact/components/button/Button'
+import { InputText } from 'primereact/components/inputtext/InputText'
+import { Toolbar } from 'primereact/components/toolbar/Toolbar'
+import { Checkbox } from 'primereact/components/checkbox/Checkbox'
 
 // 3rd party packages
 import timeago from 'time-ago'
+import { BSON } from 'mongodb-stitch'
+import { Mutex } from 'async-mutex'
 
 // css
 import './Browser.css'
@@ -20,24 +26,59 @@ export default class Browser extends Component {
     super(props)
     this.stitchClient = this.props.stitchClient
     this.songcheats = this.props.songcheats
+    this.mutex = new Mutex()
+    this.loaded = null
+
+    let defaultSettings = {
+      'Search.search': '',
+      'Search.mine': false
+    }
+
+    // load stored settings if any
+    let settings = localStorage.getItem('SongCheat.Browser.Settings')
+    settings = settings ? JSON.parse(settings) : defaultSettings
+
+    // if new settings have been added since they were stored, use their default value
+    for (let k in defaultSettings) if (typeof settings[k] === 'undefined') settings[k] = defaultSettings[k]
+
     this.state = {
-      data: null
+      data: null,
+      settings: Map(settings)
+    }
+  }
+
+  async load () {
+    if (this.stitchClient.isAuthenticated()) {
+      let search = this.state.settings.get('Search.search')
+      let mine = this.state.settings.get('Search.mine')
+      let what = `${mine ? 'my documents' : 'all documents'} matching "${search}"`
+      if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
+      else {
+        this.loaded = this.state.settings
+        console.log(`Listing ${what}`)
+        // I keep getting "unknown operator $search", so using a simple OR regexp search
+        // let text = { $search: search }
+        let regex = BSON.BSONRegExp('.*' + search + '.*', 'i')
+        let or = [ { artist: { $regex: regex } }, { title: { $regex: regex } }, { type: { $regex: regex } }, { source: { $regex: regex } } ]
+        let sort = { type: 1, artist: 1, year: 1}
+        let data = await this.songcheats.find(mine ? { owner_id: this.stitchClient.authedId(), $or: or } : { $or: or }).sort(sort).execute()
+        console.warn(`Done listing ${what}`)
+        this.setState({ data: this.groupByType(data) })
+      }
     }
   }
 
   async componentDidMount () {
-    if (this.stitchClient.isAuthenticated()) {
-      let allData = await this.songcheats.find({ owner_id: { $ne: this.stitchClient.authedId() }}).sort({'type': 1, 'artist': 1, 'year': 1}).execute()
-      let myData = await this.songcheats.find({ owner_id: this.stitchClient.authedId() }).sort({'type': 1, 'artist': 1, 'year': 1}).execute()
-      allData = this.groupByType(allData)
-      myData = this.groupByType(myData)
-      this.setState({ allData, myData })
-    }
+    this.load()
+  }
+
+  async componentDidUpdate (prevProps, prevState) {
+    if (prevState.settings !== this.state.settings) this.mutex.runExclusive(() => this.load())
   }
 
   groupByType (data) {
     let lastType = null
-    let groupedData = { length: data.length, dataByType: new Map() }
+    let groupedData = { length: data.length, dataByType: new window.Map() }
 
     for (let item of data) {
       let type = item.type || '(unknown type)'
@@ -89,23 +130,34 @@ export default class Browser extends Component {
     return items
   }
 
+  // Update settings in response to user input
+  updateSetting (key, value) {
+    let settings = this.state.settings.set(key, value)
+    this.setState({settings})
+    localStorage.setItem('SongCheat.Browser.Settings', JSON.stringify(settings))
+  }
+
   render () {
     // set document title
     document.title = 'SongCheat'
 
     return (<div className='Index' >
-      { this.props.authed() && this.state.myData &&
-        <div>
-          <h1>My SongCheats ({this.state.myData.length})</h1>
-          <Route render={({ history}) => <Button label='Create' icon='fa fa-plus' className='new' onClick={() => { history.push('/new') }} />} />
-          { this.items(this.state.myData.dataByType) }
+
+      <Toolbar>
+        <div className='p-toolbar-group-left'>
+          <Route render={({ history }) => <Button label='Create' icon='fa fa-plus' onClick={() => { history.push('/new') }} />} />
+          <i className='fa fa-search' style={{marginRight: '.25em'}} />
+          <InputText onChange={(e) => this.updateSetting('Search.search', e.target.value)} value={this.state.settings.get('Search.search')} placeholder='Search...' style={{width: '30%'}} />
+          { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.mine', e.checked)} checked={this.state.settings.get('Search.mine')} style={{marginLeft: '.25em'}} /> }
+          { this.props.authed() && <label>Mine only</label> }
         </div>
-      }
-      { this.state.allData &&
+        <div className='p-toolbar-group-right' />
+      </Toolbar>
+
+      { this.state.data &&
         <div>
-          { this.props.authed() && <h1>Other SongCheats ({this.state.allData.length})</h1> }
-          { !this.props.authed() && <h1>All SongCheats ({this.state.allData.length})</h1> }
-          { this.items(this.state.allData.dataByType) }
+          <h2>{this.state.data.length} songcheats found {this.loaded.get('Search.search') ? 'matching "' + this.loaded.get('Search.search') + '"' : ''}</h2>
+          { this.items(this.state.data.dataByType) }
         </div>
       }
     </div>
