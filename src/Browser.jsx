@@ -83,7 +83,7 @@ export default class Browser extends Component {
     for (let item of data) {
       let type = item.type || '(unknown type)'
       if (type !== lastType) {
-        groupedData.dataByType.set(type, { artists: new Map(), items: [] })
+        groupedData.dataByType.set(type, { artists: new window.Map(), items: [] })
         lastType = type
       }
 
@@ -92,7 +92,7 @@ export default class Browser extends Component {
     }
 
     // sort types by descending number of items
-    groupedData.dataByType = new Map(
+    groupedData.dataByType = Map(
       Array
         .from(groupedData.dataByType)
         .sort((a, b) => {
