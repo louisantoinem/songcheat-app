@@ -8,6 +8,7 @@ import { Button } from 'primereact/components/button/Button'
 import { InputText } from 'primereact/components/inputtext/InputText'
 import { Toolbar } from 'primereact/components/toolbar/Toolbar'
 import { Checkbox } from 'primereact/components/checkbox/Checkbox'
+import { ProgressSpinner } from 'primereact/components/progressspinner/ProgressSpinner'
 
 // 3rd party packages
 import timeago from 'time-ago'
@@ -54,6 +55,7 @@ export default class Browser extends Component {
       let what = `${mine ? 'my documents' : 'all documents'} matching "${search}"`
       if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
       else {
+        this.setState({ data: null })
         this.loaded = this.state.settings
         console.log(`Listing ${what}`)
         // I keep getting "unknown operator $search", so using a simple OR regexp search
@@ -69,7 +71,7 @@ export default class Browser extends Component {
   }
 
   async componentDidMount () {
-    this.load()
+    this.mutex.runExclusive(() => this.load())
   }
 
   async componentDidUpdate (prevProps, prevState) {
@@ -154,6 +156,7 @@ export default class Browser extends Component {
         <div className='p-toolbar-group-right' />
       </Toolbar>
 
+      { !this.state.data && <div className='SpinnerContainer'><ProgressSpinner style={{width: '150px', height: '150px'}} strokeWidth='8' fill='#EEEEEE' animationDuration='1s' /></div> }
       { this.state.data &&
         <div>
           <h2>{this.state.data.length} songcheats found {this.loaded.get('Search.search') ? 'matching "' + this.loaded.get('Search.search') + '"' : ''}</h2>
