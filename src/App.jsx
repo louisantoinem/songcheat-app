@@ -67,6 +67,7 @@ class App extends Component {
       'Ascii.columnCount': 2,
       'Score.staveMode': '',
       'Score.separateUnits': false,
+      'Score.displayedUnits': [],
       'Score.showLyrics': true,
       'Score.showStrokes': false,
       'Score.showAccents': false
@@ -145,6 +146,7 @@ class App extends Component {
         if (document) {
           console.warn(`Loaded document with _id ${this._id}`)
           this.songcheat(document.source, null)
+          localStorage.setItem('SongCheat.App.LastLoadedId', this._id)
         }
       })
     }
@@ -164,7 +166,18 @@ class App extends Component {
       // parse and compile songcheat source
       let songcheat = this.parser.parse(source)
       songcheat = this.compiler.compile(songcheat)
-      this.setState({songcheat: songcheat, error: null})
+
+      // when loading a new songcheat, reset displayedUnits to all units
+      let settings = this.state.settings
+      if (!this._id || this._id.toString() !== localStorage.getItem('SongCheat.App.LastLoadedId')) {
+        console.warn(`Resetting displayedUnits since ID ${this._id} <> ${localStorage.getItem('SongCheat.App.LastLoadedId')}`)
+        let unitIds = []
+        if (songcheat.structure) for (let unit of songcheat.structure) unitIds.push(unit.id)
+        settings = this.state.settings.set('Score.displayedUnits', unitIds)
+        localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
+      } else console.log(`Keeping displayedUnits since ID ${this._id} = ${localStorage.getItem('SongCheat.App.LastLoadedId')}`)
+
+      this.setState({songcheat: songcheat, settings: settings, error: null})
     } catch (e) {
       // change state.songcheat only when loading a new file, otherwise (i.e. when editing) keep current as is
       this.setState({songcheat: filename ? null : this.state.songcheat, error: e.toString()})
@@ -229,6 +242,7 @@ class App extends Component {
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
         this.props.history.replace('/' + inserted.insertedId)
         this._id = inserted.insertedId
+        localStorage.setItem('SongCheat.App.LastLoadedId', this._id)
       }
     } catch (e) {
       console.error(e)
@@ -297,6 +311,19 @@ class App extends Component {
     localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
   }
 
+  getUnitOptions () {
+    let options = []
+    if (this.state.songcheat && this.state.songcheat.structure) for (let unit of this.state.songcheat.structure) options.push({ value: unit.id, label: unit.name})
+    return options
+  }
+
+  getDisplayedUnits () {
+    let units = []
+    let displayedUnits = this.state.settings.get('Score.displayedUnits')
+    if (this.state.songcheat && this.state.songcheat.structure) for (let unit of this.state.songcheat.structure) if (displayedUnits.indexOf(unit.id) >= 0) units.push(unit)
+    return units
+  }
+
   render () {
     // set document title
     if (this.state.songcheat && this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
@@ -308,7 +335,7 @@ class App extends Component {
 
       <header className='App-header' style={{position: 'relative'}}>
         <div style={{ position: 'absolute', left: '5px' }}>
-          <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.state.songcheat ? this.state.songcheat.structure : []} />
+          <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.getDisplayedUnits()} />
         </div>
         <div style={{ position: 'absolute', right: '5px' }}>
           <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
@@ -357,7 +384,9 @@ class App extends Component {
             rendering='canvas'
             audioCtx={this.audioCtx}
             songcheat={this.state.songcheat}
-            units={this.state.songcheat ? this.state.songcheat.structure : []}
+            unitOptions={this.getUnitOptions()}
+            displayedUnits={this.state.settings.get('Score.displayedUnits')}
+            units={this.getDisplayedUnits()}
             staveMode={this.state.settings.get('Score.staveMode')}
             separateUnits={this.state.settings.get('Score.separateUnits')}
             showLyrics={this.state.settings.get('Score.showLyrics')}

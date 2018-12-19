@@ -5,6 +5,7 @@ import {Utils, VexTab as SongcheatVexTab } from 'songcheat-core'
 
 // prime react components
 import {Checkbox} from 'primereact/components/checkbox/Checkbox'
+import {MultiSelect} from 'primereact/components/multiselect/MultiSelect'
 
 // 3rd party components
 import ReactResizeDetector from 'react-resize-detector'
@@ -167,6 +168,16 @@ class Score extends Component {
       <label>Show lyrics</label>
       <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />
       <label>Separate units</label>
+
+      <div className='displayedUnits'>
+
+        <MultiSelect
+          value={this.props.displayedUnits}
+          options={this.props.unitOptions}
+          onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('displayedUnits', selectedOption.value) }}
+        />
+
+      </div>
 
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
