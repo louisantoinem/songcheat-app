@@ -56,7 +56,7 @@ class Score extends Component {
     while (divUnits.firstChild) divUnits.removeChild(divUnits.firstChild)
 
     // convert unit to vextab scores
-    let barsPerLine = Math.max(1, Math.floor(W / 500)) // Utils.prevPowerOf2(W / 300)
+    let barsPerLine = Math.max(1, Math.floor(W / 400)) // Utils.prevPowerOf2(W / 300)
     let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, this.props.staveMode, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, this.props.showAccents, MAX_STAVES_PER_SCORE) })
     scores.forEach((score, scoreIndex) => {
       // create canvas or div (for svg)
