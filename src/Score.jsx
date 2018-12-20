@@ -176,16 +176,23 @@ class Score extends Component {
       </div>
 
       <div className='optionsRow'>
-
         <Checkbox onChange={(e) => this.props.optionChanged('showStrokes', e.checked)} checked={this.props.showStrokes} />
         <label>Show strokes</label>
+      </div>
+
+      <div className='optionsRow'>
         <Checkbox onChange={(e) => this.props.optionChanged('showAccents', e.checked)} checked={this.props.showAccents} />
         <label>Show accents</label>
+      </div>
+
+      <div className='optionsRow'>
         <Checkbox onChange={(e) => this.props.optionChanged('showLyrics', e.checked)} checked={this.props.showLyrics} />
         <label>Show lyrics</label>
+      </div>
+
+      <div className='optionsRow'>
         <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />
         <label>Separate units</label>
-
       </div>
 
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}

@@ -2,14 +2,31 @@
   font-family: 'Roboto Mono', 'Monaco', monospace;
   padding: 10px 0;
 
-  > div.Select {
+  > div.optionsRow {
     float: left;
-    margin: 0 10px;
-    width: 250px;
-  }
+    margin: 10px;
 
-  input[type='radio'] {
-    margin-right: 0.5em;
+    > div.Select {
+      width: 250px;
+    }
+
+    > .IncDec {
+      font-size: 1.0em;
+      width: 30px;
+      height: 30px;
+      margin-right: 0;
+      margin-top: 2px;
+    }
+
+    > button.IncDec > span {
+      padding: 0;
+    }
+
+    > label.IncDec {
+      display: inline-block;
+      text-align: center;
+      width: 20px;
+    }
   }
 
   > div.Ascii {
@@ -30,23 +47,5 @@
       break-inside: avoid-column;
       margin-bottom: 2.5em;
     }
-  }
-
-  > .IncDec {
-    font-size: 1.0em;
-    width: 30px;
-    height: 30px;
-    margin-right: 0;
-    margin-top: 2px;
-  }
-
-  > button.IncDec > span {
-    padding: 0;
-  }
-
-  > label.IncDec {
-    display: inline-block;
-    text-align: center;
-    width: 20px;
   }
 }

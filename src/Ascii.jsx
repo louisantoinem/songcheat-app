@@ -67,10 +67,12 @@ class Ascii extends Component {
   render () {
     return (<div className='Ascii'>
       {this.state.errors.map((error, index) => <p className='error' key={index}>{error}</p>)}
-      <Select
-        value={this.props.split}
-        onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('split', selectedOption.value) }}
-        options={[
+
+      <div className='optionsRow'>
+        <Select
+          value={this.props.split}
+          onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('split', selectedOption.value) }}
+          options={[
           { value: 0, label: 'Lyrics as entered' },
           { value: 1, label: 'Lyrics by 1 bar' },
           { value: 2, label: 'Lyrics by 2 bars' },
@@ -80,20 +82,26 @@ class Ascii extends Component {
           { value: 12, label: 'Structure by 2 bars' },
           { value: 13, label: 'Structure by 3 bars' },
           { value: 14, label: 'Structure by 4 bars' }
-        ]}
+          ]}
       />
-      { this.props.split > 0 && <Checkbox onChange={(e) => this.props.optionChanged('maxConsecutiveSpaces', e.checked ? 0 : 1)} checked={this.props.maxConsecutiveSpaces === 0} /> }
-      { this.props.split > 0 && <label>Respect durations</label> }
-      <label >&nbsp;</label>
-      <label >&nbsp;</label>
-      <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)} />
-      <label className='IncDec'>A</label>
-      <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('fontSize', Utils.round(this.props.fontSize + 0.1, 1))} />
-      <label >&nbsp;</label>
-      <label >&nbsp;</label>
-      <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount > 1 ? this.props.columnCount - 1 : 1)} />
-      <label className='IncDec'>&#9776;</label>
-      <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount + 1)} />
+      </div>
+
+      <div className='optionsRow'>
+        { this.props.split > 0 && <Checkbox onChange={(e) => this.props.optionChanged('maxConsecutiveSpaces', e.checked ? 0 : 1)} checked={this.props.maxConsecutiveSpaces === 0} /> }
+        { this.props.split > 0 && <label>Respect durations</label> }
+      </div>
+
+      <div className='optionsRow'>
+        <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('fontSize', this.props.fontSize > 0.1 ? Utils.round(this.props.fontSize - 0.1, 1) : 0.1)} />
+        <label className='IncDec'>A</label>
+        <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('fontSize', Utils.round(this.props.fontSize + 0.1, 1))} />
+      </div>
+
+      <div className='optionsRow'>
+        <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount > 1 ? this.props.columnCount - 1 : 1)} />
+        <label className='IncDec'>&#9776;</label>
+        <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('columnCount', this.props.columnCount + 1)} />
+      </div>
 
       <div className='Ascii' style={{ fontSize: this.props.fontSize + 'em', columnCount: this.props.columnCount }}>
         {

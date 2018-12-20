@@ -1,17 +1,16 @@
 .Score {
   padding: 5px 0;
 
-  div.optionsRow {
+  > div.optionsRow {
     float: left;
     margin: 10px;
 
     > div.Select {
       width: 350px;
     }
-  }
 
-  .ui-chkbox-box,
-  label {
-    margin-left: 5px;
+    label {
+      margin-left: 4px;
+    }
   }
 }
