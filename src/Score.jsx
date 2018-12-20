@@ -144,10 +144,22 @@ class Score extends Component {
   render () {
     return (<div className='Score' ref={div => { this.rootDiv = div }}>
 
-      <Select
-        value={this.props.staveMode}
-        onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('staveMode', selectedOption.value) }}
-        options={[
+      {this.props.unitOptions.length > 0 && <div className='optionsRow'>
+
+        <MultiSelect
+          value={this.props.displayedUnits}
+          options={this.props.unitOptions}
+          onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('displayedUnits', selectedOption.value) }}
+      />
+
+      </div>}
+
+      <div className='optionsRow'>
+
+        <Select
+          value={this.props.staveMode}
+          onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('staveMode', selectedOption.value) }}
+          options={[
         { value: '', label: 'Default stave mode (as set by author)' },
         { value: 'n', label: 'Notation' },
         { value: 'nt', label: 'Notation and tablature' },
@@ -158,24 +170,21 @@ class Score extends Component {
         { value: 'tsd', label: 'Tablature with stems (down)' },
         { value: 'r', label: 'Rhythm' },
         { value: 'rt', label: 'Rhythm and tablature' }
-        ]}
+          ]}
       />
-      <Checkbox onChange={(e) => this.props.optionChanged('showStrokes', e.checked)} checked={this.props.showStrokes} />
-      <label>Show strokes</label>
-      <Checkbox onChange={(e) => this.props.optionChanged('showAccents', e.checked)} checked={this.props.showAccents} />
-      <label>Show accents</label>
-      <Checkbox onChange={(e) => this.props.optionChanged('showLyrics', e.checked)} checked={this.props.showLyrics} />
-      <label>Show lyrics</label>
-      <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />
-      <label>Separate units</label>
 
-      <div className='displayedUnits'>
+      </div>
 
-        <MultiSelect
-          value={this.props.displayedUnits}
-          options={this.props.unitOptions}
-          onChange={(selectedOption) => { if (selectedOption) this.props.optionChanged('displayedUnits', selectedOption.value) }}
-        />
+      <div className='optionsRow'>
+
+        <Checkbox onChange={(e) => this.props.optionChanged('showStrokes', e.checked)} checked={this.props.showStrokes} />
+        <label>Show strokes</label>
+        <Checkbox onChange={(e) => this.props.optionChanged('showAccents', e.checked)} checked={this.props.showAccents} />
+        <label>Show accents</label>
+        <Checkbox onChange={(e) => this.props.optionChanged('showLyrics', e.checked)} checked={this.props.showLyrics} />
+        <label>Show lyrics</label>
+        <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />
+        <label>Separate units</label>
 
       </div>
 
