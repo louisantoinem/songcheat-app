@@ -27,21 +27,20 @@ class Ascii extends Component {
     let texts = []
     let texts_structure = []
 
-    for (let unit of this.props.units) {
-      try {
-        let chordColorizer = line => { return `<span style='color: ${unit.part.color}'>${line}</span>` }
-        if (this.props.split === 0) texts.push(this.ascii.getUnitText(unit, 1, 0, false, chordColorizer))
-        else {
-          texts.push(this.ascii.getUnitText(unit, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
-          texts_structure.push(this.ascii.getPartText(unit.part, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
-        }
-      } catch (e) {
-        if (!(e instanceof AsciiException)) {
-          console.error(e)
-        }
-        errors.push(e.message)
+    try {
+      let chordColorizer = (line, unit) => { return `<span style='color: ${unit.part.color}'>${line}</span>` }
+      if (this.props.split === 0) texts.push(...this.ascii.getUnitsText(this.props.units, 1, 0, false, chordColorizer))
+      else {
+        texts.push(...this.ascii.getUnitsText(this.props.units, this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
+        texts_structure.push(...this.ascii.getPartsText(this.props.units.map(unit => { return unit.part }), this.props.maxConsecutiveSpaces, this.props.split % 10, this.props.maxConsecutiveSpaces !== 1, chordColorizer))
       }
+    } catch (e) {
+      if (!(e instanceof AsciiException)) {
+        console.error(e)
+      }
+      errors.push(e.message)
     }
+
     this.setState({errors, texts, texts_structure})
   }
 
@@ -62,6 +61,10 @@ class Ascii extends Component {
       !Utils.arraysEqual(prevProps.units, this.props.units)) {
       this.getTexts()
     }
+  }
+
+  getText (index) {
+    return (this.props.split > 10 ? this.state.texts_structure[index] : this.state.texts[index]) || ''
   }
 
   render () {
@@ -105,10 +108,10 @@ class Ascii extends Component {
 
       <div className='Ascii' style={{ fontSize: this.props.fontSize + 'em', columnCount: this.props.columnCount }}>
         {
-        this.props.units.map((unit, index) => <div key={index} style={{ marginBottom: (2.5 * this.props.fontSize) + 'em'}}>
+        this.props.units.map((unit, index) => this.getText(index).trim() && <div key={index} style={{ marginBottom: (2.5 * this.props.fontSize) + 'em'}}>
           {unit.lyricsWarnings.map((warning, index) => <p className='warning' key={index}>{warning}</p>)}
           <p style={{color: unit.part.color}}>[{unit.name}]</p>
-          <div dangerouslySetInnerHTML={{__html: this.props.split > 10 ? this.state.texts_structure[index] : this.state.texts[index]}} />
+          <div dangerouslySetInnerHTML={{__html: this.getText(index)}} />
         </div>)
         }
       </div>
