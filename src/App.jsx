@@ -290,7 +290,7 @@ class App extends Component {
 
   // Default filename used when saving a new songcheat for the first time
   defaultFilename () {
-    let filename = 'untitled'
+    let filename = ''
     if (this.state.songcheat && this.state.songcheat.title) {
       filename = this.state.songcheat.title
       if (this.state.songcheat.artist) filename += ' (' + this.state.songcheat.artist + (this.state.songcheat.year ? ', ' + this.state.songcheat.year : '') + ')'
