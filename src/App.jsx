@@ -188,9 +188,15 @@ class App extends Component {
   }
 
   onChange (source) {
-    // auto-save source after 1s if no more change
+    // auto-save source after 2.5s if no more change
     clearTimeout(this.saveTimer)
-    this.saveTimer = setTimeout(() => localStorage.setItem('SongCheat.App.Source', source), 1000)
+    this.saveTimer = setTimeout(() => {
+      // logged in: insert or update mongodb document
+      if (this.props.authed()) this.save(false, source)
+
+      // not logged in: store in local storage
+      else localStorage.setItem('SongCheat.App.Source', source)
+    }, 2500)
 
     // recompile songcheat after 0.1 or 0.5s if no more change
     clearTimeout(this.recompileTimer)
@@ -208,19 +214,19 @@ class App extends Component {
     }
 */
     // logged in: insert or update mongodb document
-    if (this.props.authed()) return this.save(quiet)
+    if (this.props.authed()) return this.save(quiet, source)
 
     // not logged in: download text file
     let blob = new Blob([source], { type: 'text/plain;charset=utf-8' })
     saveAs(blob, filename)
   }
 
-  async save (quiet) {
+  async save (quiet, source) {
     if (!this.props.authed()) throw new Error('Cannot save songcheat: not logged in')
 
     let document = {
       owner_id: this.stitchClient.authedId(),
-      source: this.state.source,
+      source: source || this.state.source,
       artist: this.state.songcheat ? this.state.songcheat.artist : null,
       year: this.state.songcheat ? this.state.songcheat.year : null,
       title: this.state.songcheat && this.state.songcheat.title ? this.state.songcheat.title : '(unkown title)',
