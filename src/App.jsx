@@ -214,7 +214,10 @@ class App extends Component {
     }
 */
     // logged in: insert or update mongodb document
-    if (this.props.authed()) return this.save(quiet, source)
+    if (this.props.authed()) {
+      clearTimeout(this.saveTimer)
+      return this.save(quiet, source)
+    }
 
     // not logged in: download text file
     let blob = new Blob([source], { type: 'text/plain;charset=utf-8' })
