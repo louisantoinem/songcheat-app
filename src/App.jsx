@@ -190,13 +190,7 @@ class App extends Component {
   onChange (source) {
     // auto-save source after 2.5s if no more change
     clearTimeout(this.saveTimer)
-    this.saveTimer = setTimeout(() => {
-      // logged in: insert or update mongodb document
-      if (this.props.authed()) this.save(true, source)
-
-      // not logged in: store in local storage
-      else localStorage.setItem('SongCheat.App.Source', source)
-    }, 2500)
+    this.saveTimer = setTimeout(() => localStorage.setItem('SongCheat.App.Source', source), 2500)
 
     // recompile songcheat after 0.1 or 0.5s if no more change
     clearTimeout(this.recompileTimer)
