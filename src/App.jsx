@@ -192,7 +192,7 @@ class App extends Component {
     clearTimeout(this.saveTimer)
     this.saveTimer = setTimeout(() => {
       // logged in: insert or update mongodb document
-      if (this.props.authed()) this.save(false, source)
+      if (this.props.authed()) this.save(true, source)
 
       // not logged in: store in local storage
       else localStorage.setItem('SongCheat.App.Source', source)
