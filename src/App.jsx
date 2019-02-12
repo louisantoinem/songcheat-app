@@ -209,7 +209,7 @@ class App extends Component {
 */
     // logged in: insert or update mongodb document
     if (this.props.authed()) {
-      clearTimeout(this.saveTimer)
+      this.songcheat(source)
       return this.save(quiet, source)
     }
 
