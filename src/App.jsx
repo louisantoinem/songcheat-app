@@ -70,7 +70,9 @@ class App extends Component {
       'Score.displayedUnits': [],
       'Score.showLyrics': true,
       'Score.showStrokes': false,
-      'Score.showAccents': false
+      'Score.showAccents': false,
+      'Score.barsPerLine': 4,
+      'Score.rendering': 'canvas'
     }
 
     // load stored settings if any
@@ -384,7 +386,7 @@ class App extends Component {
             columnCount={this.state.settings.get('Ascii.columnCount')}
             optionChanged={(key, value) => this.updateSetting('Ascii.' + key, value)} />
           <Score label='Score'
-            rendering='canvas'
+            rendering={this.state.settings.get('Score.rendering')}
             audioCtx={this.audioCtx}
             songcheat={this.state.songcheat}
             unitOptions={this.getUnitOptions()}
@@ -395,6 +397,7 @@ class App extends Component {
             showLyrics={this.state.settings.get('Score.showLyrics')}
             showStrokes={this.state.settings.get('Score.showStrokes')}
             showAccents={this.state.settings.get('Score.showAccents')}
+            barsPerLine={this.state.settings.get('Score.barsPerLine')}
             filename={this.state.filename}
             optionChanged={(key, value) => this.updateSetting('Score.' + key, value)} />
           {this.state.editMode && <Editor {...this.props}

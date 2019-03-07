@@ -12,5 +12,23 @@
     label {
       margin-left: 4px;
     }
+
+    > .IncDec {
+      font-size: 1.0em;
+      width: 30px;
+      height: 30px;
+      margin-right: 0;
+      margin-top: 2px;
+    }
+
+    > button.IncDec > span {
+      padding: 0;
+    }
+
+    > label.IncDec {
+      display: inline-block;
+      text-align: center;
+      width: 20px;
+    }
   }
 }

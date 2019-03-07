@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {Utils, VexTab as SongcheatVexTab } from 'songcheat-core'
 
 // prime react components
+import {Button} from 'primereact/components/button/Button'
 import {Checkbox} from 'primereact/components/checkbox/Checkbox'
 import {MultiSelect} from 'primereact/components/multiselect/MultiSelect'
 
@@ -56,8 +57,7 @@ class Score extends Component {
     while (divUnits.firstChild) divUnits.removeChild(divUnits.firstChild)
 
     // convert unit to vextab scores
-    let barsPerLine = Math.max(1, Math.floor(W / 500)) // Utils.prevPowerOf2(W / 300)
-    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, this.props.staveMode, barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, this.props.showAccents, MAX_STAVES_PER_SCORE) })
+    let scores = Utils.BM('[Score.jsx] SongcheatVexTab.Units2VexTab', () => { return SongcheatVexTab.Units2VexTab(this.props.songcheat, units, this.props.staveMode, this.props.barsPerLine, this.props.separateUnits, this.props.showLyrics, this.props.showStrokes, this.props.showAccents, MAX_STAVES_PER_SCORE) })
     scores.forEach((score, scoreIndex) => {
       // create canvas or div (for svg)
       let canvas = document.createElement(this.props.rendering === 'canvas' ? 'canvas' : 'div')
@@ -131,6 +131,8 @@ class Score extends Component {
       prevProps.showStrokes !== this.props.showStrokes ||
       prevProps.showAccents !== this.props.showAccents ||
       prevProps.separateUnits !== this.props.separateUnits ||
+      prevProps.barsPerLine !== this.props.barsPerLine ||
+      prevProps.rendering !== this.props.rendering ||
       !Utils.arraysEqual(prevProps.units, this.props.units)) {
       if (prevProps.filename !== this.props.filename) console.warn('[Score.jsx] Vextabbing because new file was loaded')
       else if (prevProps.songcheat !== this.props.songcheat) console.warn('[Score.jsx] Vextabbing because songcheat changed')
@@ -176,6 +178,12 @@ class Score extends Component {
       </div>
 
       <div className='optionsRow'>
+        <Button label='-' className='IncDec' onClick={() => this.props.optionChanged('barsPerLine', Math.max(1, this.props.barsPerLine - 1))} />
+        <label className='IncDec'>|</label>
+        <Button label='+' className='IncDec' onClick={() => this.props.optionChanged('barsPerLine', this.props.barsPerLine + 1)} />
+      </div>
+
+      <div className='optionsRow'>
         <Checkbox onChange={(e) => this.props.optionChanged('showStrokes', e.checked)} checked={this.props.showStrokes} />
         <label>Show strokes</label>
       </div>
@@ -193,6 +201,11 @@ class Score extends Component {
       <div className='optionsRow'>
         <Checkbox onChange={(e) => this.props.optionChanged('separateUnits', e.checked)} checked={this.props.separateUnits} />
         <label>Separate units</label>
+      </div>
+
+      <div className='optionsRow'>
+        <Checkbox onChange={(e) => this.props.optionChanged('rendering', e.checked ? 'svg' : 'canvas')} checked={this.props.rendering == 'svg'} />
+        <label>SVG</label>
       </div>
 
       {this.state.loading && <div style={{ margin: '50px 100px', color: '#EEE', fontSize: '3em'}} >Loading...</div>}
