@@ -147,6 +147,7 @@ class App extends Component {
       this.songcheats.findOne({ '_id': this._id }).then(document => {
         if (document) {
           console.warn(`Loaded document with _id ${this._id}`)
+          this.owner_id = document.owner_id
           this.songcheat(document.source, null)
           localStorage.setItem('SongCheat.App.LastLoadedId', this._id)
         }
@@ -230,6 +231,13 @@ class App extends Component {
       year: this.state.songcheat ? this.state.songcheat.year : null,
       title: this.state.songcheat && this.state.songcheat.title ? this.state.songcheat.title : '(unkown title)',
       type: this.state.songcheat && this.state.songcheat.type ? this.state.songcheat.type : '(unkown type)'
+    }
+
+    // if currently edited songcheat is owned by someone else, create a fork
+    if (this.owner_id && document.owner_id !== this.owner_id) {
+      this.owner_id = document.owner_id
+      document.forked_songcheat_id = this._id
+      this._id = null
     }
 
     try {

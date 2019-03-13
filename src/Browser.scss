@@ -41,11 +41,19 @@
       }
     }
 
+    i.fa-code-fork,
     i.fa-star {
       float: right;
-      cursor: pointer;
       margin-top: 38px;
       font-size: 0.85em;
+    }
+
+    i.fa-code-fork {
+      margin-right: 3px;
+    }
+
+    i.fa-star {
+      cursor: pointer;
       opacity: 0.2;
 
       &.favorite {

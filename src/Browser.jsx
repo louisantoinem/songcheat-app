@@ -34,7 +34,8 @@ export default class Browser extends Component {
     let defaultSettings = {
       'Search.search': '',
       'Search.mine': false,
-      'Search.favorite': false
+      'Search.favorite': false,
+      'Search:nofork': false
     }
 
     // load stored settings if any
@@ -56,6 +57,7 @@ export default class Browser extends Component {
       let search = this.state.settings.get('Search.search')
       let mine = this.props.authed() ? this.state.settings.get('Search.mine') : false
       let favorite = this.props.authed() ? this.state.settings.get('Search.favorite') : false
+      let nofork = this.props.authed() ? this.state.settings.get('Search.nofork') : false
       let what = `${mine ? 'my' : 'all'} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
       if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
       else {
@@ -65,9 +67,15 @@ export default class Browser extends Component {
         // I keep getting "unknown operator $search", so using a simple OR regexp search
         // let text = { $search: search }
         let regex = BSON.BSONRegExp('.*' + search + '.*', 'i')
-        let or = [ { artist: { $regex: regex } }, { title: { $regex: regex } }, { type: { $regex: regex } }, { source: { $regex: regex } } ]
-        let sort = { type: 1, artist: 1, year: 1}
-        let data = await this.songcheats.find(mine ? { owner_id: this.stitchClient.authedId(), $or: or } : { $or: or }).sort(sort).execute()
+        let filter = {
+          $and: [
+            { $or: [ { artist: { $regex: regex } }, { title: { $regex: regex } }, { type: { $regex: regex } }, { source: { $regex: regex } } ]}, // matches search
+            { $or: [ { forked_songcheat_id: { $exists: false } }, { owner_id: this.stitchClient.authedId() } ]} // not a fork or this fork belongs to me
+          ]
+        }
+        if (mine) filter.owner_id = this.stitchClient.authedId()
+        if (nofork) filter.forked_songcheat_id = { $exists: false }
+        let data = await this.songcheats.find(filter).sort({ type: 1, artist: 1, year: 1}).execute()
 
         // get favorite songcheats for this user by songcheat_id
         let ratings = await this.ratings.find({ user_id: this.stitchClient.authedId() }).execute()
@@ -95,9 +103,13 @@ export default class Browser extends Component {
       dataByType: new window.Map()
     }
 
+    // for each fork, find original and ignore it if found
+    for (let item of data) if (item.forked_songcheat_id) for (let original_item of data) if (original_item._id.equals(item.forked_songcheat_id)) original_item.ignore = true
+
     // group by type, keeping only given item ids if any and listing distinct artists on the way
     for (let item of data) {
-      if (keep && !keep.get(item._id.toString())) groupedData.length--
+      if (item.ignore) groupedData.length--
+      else if (keep && !keep.get(item._id.toString())) groupedData.length--
       else {
         let type = item.type || '(unknown type)'
         if (!groupedData.dataByType.get(type)) groupedData.dataByType.set(type, { artists: new window.Map(), items: [] })
@@ -145,6 +157,8 @@ export default class Browser extends Component {
           <span className='info'><i className='fa fa-edit' /> {timeago.ago(item.last_modified)}</span>
         </Link>
         {this.props.authed() && <i className={'fa fa-star ' + (this.state.favorites.get(item._id.toString()) ? 'favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
+        {item.forked_songcheat_id && <i className='fa fa-code-fork' />}
+
       </div>
     )
   }
@@ -183,6 +197,8 @@ export default class Browser extends Component {
           { this.props.authed() && <label>Mine only</label> }
           { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.favorite', e.checked)} checked={this.state.settings.get('Search.favorite')} style={{marginLeft: '.5em'}} /> }
           { this.props.authed() && <label>Favorites only</label> }
+          { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.nofork', e.checked)} checked={this.state.settings.get('Search.nofork')} style={{marginLeft: '.5em'}} /> }
+          { this.props.authed() && <label>Ignore forks</label> }
         </div>
         <div className='p-toolbar-group-right' />
       </Toolbar>
