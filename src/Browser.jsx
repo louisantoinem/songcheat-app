@@ -205,7 +205,7 @@ export default class Browser extends Component {
             <InputText onChange={(e) => this.updateSetting('Search.search', e.target.value)} value={this.state.settings.get('Search.search')} placeholder='Search...' style={{width: '300px'}} />
           </div>
 
-          <div className='optionsRow'>
+          { this.props.authed() && <div className='optionsRow'>
             <Select
               value={this.state.settings.get('Search.mode')}
               onChange={(selectedOption) => { if (selectedOption) this.updateSetting('Search.mode', selectedOption.value) }}
@@ -215,7 +215,7 @@ export default class Browser extends Component {
                 { value: 'other', label: "Other's" }
               ]}
             />
-          </div>
+          </div>}
 
           <div className='optionsRow' style={{marginTop: '7px'}}>
             { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.favorite', e.checked)} checked={this.state.settings.get('Search.favorite')} style={{marginLeft: '.5em'}} /> }
