@@ -204,7 +204,7 @@ class Score extends Component {
       </div>
 
       <div className='optionsRow'>
-        <Checkbox onChange={(e) => this.props.optionChanged('rendering', e.checked ? 'svg' : 'canvas')} checked={this.props.rendering == 'svg'} />
+        <Checkbox onChange={(e) => this.props.optionChanged('rendering', e.checked ? 'svg' : 'canvas')} checked={this.props.rendering === 'svg'} />
         <label>SVG</label>
       </div>
 

@@ -10,6 +10,9 @@ import { Toolbar } from 'primereact/components/toolbar/Toolbar'
 import { Checkbox } from 'primereact/components/checkbox/Checkbox'
 import { ProgressSpinner } from 'primereact/components/progressspinner/ProgressSpinner'
 
+// 3rd party components
+import Select from 'react-select'
+
 // 3rd party packages
 import timeago from 'time-ago'
 import { BSON } from 'mongodb-stitch'
@@ -20,6 +23,7 @@ import './Browser.css'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/omega/theme.css'
 import 'font-awesome/css/font-awesome.css'
+import 'react-select/dist/react-select.css'
 
 export default class Browser extends Component {
 
@@ -33,7 +37,7 @@ export default class Browser extends Component {
 
     let defaultSettings = {
       'Search.search': '',
-      'Search.mine': false,
+      'Search.mode': 'all',
       'Search.favorite': false,
       'Search:nofork': false
     }
@@ -55,10 +59,10 @@ export default class Browser extends Component {
   async load () {
     if (this.stitchClient.isAuthenticated()) {
       let search = this.state.settings.get('Search.search')
-      let mine = this.props.authed() ? this.state.settings.get('Search.mine') : false
+      let mode = this.props.authed() ? this.state.settings.get('Search.mode') : 'all'
       let favorite = this.props.authed() ? this.state.settings.get('Search.favorite') : false
       let nofork = this.props.authed() ? this.state.settings.get('Search.nofork') : false
-      let what = `${mine ? 'my' : 'all'} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
+      let what = `${mode.toLowerCase()} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
       if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
       else {
         this.setState({ data: null })
@@ -73,7 +77,8 @@ export default class Browser extends Component {
             { $or: [ { forked_songcheat_id: { $exists: false } }, { owner_id: this.stitchClient.authedId() } ]} // not a fork or this fork belongs to me
           ]
         }
-        if (mine) filter.owner_id = this.stitchClient.authedId()
+        if (mode === 'mine') filter.owner_id = this.stitchClient.authedId()
+        if (mode === 'other') filter.owner_id = { $ne: this.stitchClient.authedId()}
         if (nofork) filter.forked_songcheat_id = { $exists: false }
         let data = await this.songcheats.find(filter).sort({ type: 1, artist: 1, year: 1}).execute()
 
@@ -190,15 +195,35 @@ export default class Browser extends Component {
 
       <Toolbar>
         <div className='p-toolbar-group-left'>
-          <Route render={({ history }) => <Button label='Create' icon='fa fa-plus' onClick={() => { history.push('/new') }} />} />
-          <i className='fa fa-search' style={{marginRight: '.25em'}} />
-          <InputText onChange={(e) => this.updateSetting('Search.search', e.target.value)} value={this.state.settings.get('Search.search')} placeholder='Search...' style={{width: '30%'}} />
-          { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.mine', e.checked)} checked={this.state.settings.get('Search.mine')} style={{marginLeft: '.25em'}} /> }
-          { this.props.authed() && <label>Mine only</label> }
-          { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.favorite', e.checked)} checked={this.state.settings.get('Search.favorite')} style={{marginLeft: '.5em'}} /> }
-          { this.props.authed() && <label>Favorites only</label> }
-          { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.nofork', e.checked)} checked={this.state.settings.get('Search.nofork')} style={{marginLeft: '.5em'}} /> }
-          { this.props.authed() && <label>Ignore forks</label> }
+
+          <div className='optionsRow' style={{marginTop: '3px'}}>
+            <Route render={({ history }) => <Button label='Create' icon='fa fa-plus' onClick={() => { history.push('/new') }} />} />
+          </div>
+
+          <div className='optionsRow' style={{marginTop: '3px'}}>
+            <i className='fa fa-search' style={{marginRight: '.25em'}} />
+            <InputText onChange={(e) => this.updateSetting('Search.search', e.target.value)} value={this.state.settings.get('Search.search')} placeholder='Search...' style={{width: '300px'}} />
+          </div>
+
+          <div className='optionsRow'>
+            <Select
+              value={this.state.settings.get('Search.mode')}
+              onChange={(selectedOption) => { if (selectedOption) this.updateSetting('Search.mode', selectedOption.value) }}
+              options={[
+                { value: 'all', label: 'All' },
+                { value: 'mine', label: 'Mine' },
+                { value: 'other', label: "Other's" }
+              ]}
+            />
+          </div>
+
+          <div className='optionsRow' style={{marginTop: '7px'}}>
+            { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.favorite', e.checked)} checked={this.state.settings.get('Search.favorite')} style={{marginLeft: '.5em'}} /> }
+            { this.props.authed() && <label>Favorites only</label> }
+            { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.nofork', e.checked)} checked={this.state.settings.get('Search.nofork')} style={{marginLeft: '.5em'}} /> }
+            { this.props.authed() && <label>Ignore forks</label> }
+          </div>
+
         </div>
         <div className='p-toolbar-group-right' />
       </Toolbar>
