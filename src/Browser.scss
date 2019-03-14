@@ -2,6 +2,60 @@
   position: relative;
   padding: 10px;
 
+  div.diff {
+    // position on screen
+    position: fixed;
+    top: 10vh;
+    left: 10vw;
+    width: 80vw;
+    height: 80vh;
+    // font
+    white-space: pre;
+    font-family: monospace;
+    font-size: 1.2em;
+    // misc
+    border: 2px solid #666;
+    z-index: 2;
+    background-color: rgba(255,255,255,1);
+
+    > div.close {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      cursor: pointer;
+      color: black;
+      font-size: 2em;
+    }
+
+    > div.loading {
+      font-size: 1.5em;
+      padding: 20px;
+    }
+
+    > div.contents {
+      overflow: auto;
+      box-sizing: border-box;
+      padding: 10px;
+      height: 80vh;
+
+      > span {
+        color: #777;
+        font-weight: lighter;
+      }
+
+      > span.red {
+        color: red;
+        font-weight: normal;
+        // text-decoration: line-through;
+      }
+
+      > span.green {
+        color: green;
+        font-weight: normal;
+      }
+    }
+  }
+
   div.optionsRow {
     float: left;
     margin: 0 10px 0 0;
@@ -59,6 +113,7 @@
       float: right;
       margin-top: 38px;
       font-size: 0.85em;
+      cursor: pointer;
     }
 
     i.fa-code-fork {
@@ -66,7 +121,6 @@
     }
 
     i.fa-star {
-      cursor: pointer;
       opacity: 0.2;
 
       &.favorite {

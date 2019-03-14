@@ -17,6 +17,7 @@ import Select from 'react-select'
 import timeago from 'time-ago'
 import { BSON } from 'mongodb-stitch'
 import { Mutex } from 'async-mutex'
+import { diffChars } from 'diff'
 
 // css
 import './Browser.css'
@@ -150,6 +151,17 @@ export default class Browser extends Component {
     return await this.ratings.updateOne({ 'user_id': this.stitchClient.authedId(), 'songcheat_id': songcheat_id }, { '$set': document }, { upsert: true })
   }
 
+  async forkDiff (songcheat_id, forked_songcheat_id) {
+    this.setState({indiff: true})
+    let original = await this.songcheats.findOne({ '_id': forked_songcheat_id })
+    let fork = await this.songcheats.findOne({ '_id': songcheat_id })
+    let diff = diffChars(original.source, fork.source)
+
+    // green for additions, red for deletions
+    diff.forEach(part => { part.color = part.added ? 'green' : (part.removed ? 'red' : null) })
+    this.setState({diff})
+  }
+
   itemTemplate (item) {
     if (!item) return
     let created_days = Math.round(Math.abs(((new Date()).getTime() - item.created.getTime()) / (24 * 60 * 60 * 1000)))
@@ -162,7 +174,7 @@ export default class Browser extends Component {
           <span className='info'><i className='fa fa-edit' /> {timeago.ago(item.last_modified)}</span>
         </Link>
         {this.props.authed() && <i className={'fa fa-star ' + (this.state.favorites.get(item._id.toString()) ? 'favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
-        {item.forked_songcheat_id && <i className='fa fa-code-fork' />}
+        {item.forked_songcheat_id && <i className='fa fa-code-fork' onClick={() => this.forkDiff(item._id, item.forked_songcheat_id)} />}
 
       </div>
     )
@@ -192,6 +204,14 @@ export default class Browser extends Component {
     document.title = 'SongCheat'
 
     return (<div className='Index' >
+
+      {this.state.indiff && <div className='diff'>
+        <div className='close'><i className='fa fa-times' onClick={() => this.setState({indiff: false, diff: null})} /></div>
+        {!this.state.diff && <div className='loading'>Loading...</div>}
+        {this.state.diff && <div className='contents'>
+          {this.state.diff.map(entry => <span className={entry.color}>{entry.value}</span>)}
+        </div>}
+      </div>}
 
       <Toolbar>
         <div className='p-toolbar-group-left'>
