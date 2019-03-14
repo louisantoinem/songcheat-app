@@ -105,7 +105,7 @@ class App extends Component {
   onDrop (acceptedFiles, rejectedFiles) {
     acceptedFiles.forEach(file => {
       const reader = new FileReader()
-      reader.onload = () => this.songcheat(reader.result, file.name)
+      reader.onload = () => this.songcheat(reader.result, file.name, true)
       reader.onabort = () => console.log('file reading was aborted')
       reader.onerror = () => console.log('file reading has failed')
       reader.readAsText(file)
@@ -113,7 +113,7 @@ class App extends Component {
   }
 
   componentWillMount () {
-    if (!this._id) this.songcheat(this.state.source)
+    if (!this._id) this.songcheat(this.state.source, null, true)
 
     // register prompt plugin
     Popup.registerPlugin('prompt', function (title, defaultValue, placeholder, callback) {
@@ -148,14 +148,14 @@ class App extends Component {
         if (document) {
           console.warn(`Loaded document with _id ${this._id}`)
           this.owner_id = document.owner_id
-          this.songcheat(document.source, null)
+          this.songcheat(document.source, null, true)
           localStorage.setItem('SongCheat.App.LastLoadedId', this._id)
         }
       })
     }
   }
 
-  songcheat (source, filename) {
+  songcheat (source, filename, changing) {
     try {
       // replace composed chars causing some issues in ACE
       source = Utils.replaceComposedChars(source)
@@ -172,7 +172,7 @@ class App extends Component {
 
       // when loading a new songcheat, reset displayedUnits to all units
       let settings = this.state.settings
-      if (!this._id || this._id.toString() !== localStorage.getItem('SongCheat.App.LastLoadedId')) {
+      if (changing && (!this._id || this._id.toString() !== localStorage.getItem('SongCheat.App.LastLoadedId'))) {
         console.warn(`Resetting displayedUnits since ID ${this._id} <> ${localStorage.getItem('SongCheat.App.LastLoadedId')}`)
         let unitIds = []
         if (songcheat.structure) for (let unit of songcheat.structure) unitIds.push(unit.id)
