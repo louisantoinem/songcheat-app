@@ -74,8 +74,7 @@ export default class Browser extends Component {
         let regex = BSON.BSONRegExp('.*' + search + '.*', 'i')
         let filter = {
           $and: [
-            { $or: [ { artist: { $regex: regex } }, { title: { $regex: regex } }, { type: { $regex: regex } }, { source: { $regex: regex } } ]}, // matches search
-            { $or: [ { forked_songcheat_id: { $exists: false } }, { owner_id: this.stitchClient.authedId() } ]} // not a fork or this fork belongs to me
+            { $or: [ { artist: { $regex: regex } }, { title: { $regex: regex } }, { type: { $regex: regex } }, { source: { $regex: regex } } ]} // matches search
           ]
         }
         if (mode === 'mine') filter.owner_id = this.stitchClient.authedId()
@@ -109,13 +108,16 @@ export default class Browser extends Component {
       dataByType: new window.Map()
     }
 
-    // for each fork, find original and ignore it if found
-    for (let item of data) if (item.forked_songcheat_id) for (let original_item of data) if (original_item._id.equals(item.forked_songcheat_id)) original_item.ignore = true
+    // for each fork owned by me, find original and flag it
+    for (let item of data) {
+      if (item.forked_songcheat_id && item.owner_id === this.stitchClient.authedId()) {
+        for (let original_item of data) if (original_item._id.equals(item.forked_songcheat_id)) original_item.forked_by_me = true
+      }
+    }
 
     // group by type, keeping only given item ids if any and listing distinct artists on the way
     for (let item of data) {
-      if (item.ignore) groupedData.length--
-      else if (keep && !keep.get(item._id.toString())) groupedData.length--
+      if (keep && !keep.get(item._id.toString())) groupedData.length--
       else {
         let type = item.type || '(unknown type)'
         if (!groupedData.dataByType.get(type)) groupedData.dataByType.set(type, { artists: new window.Map(), items: [] })
@@ -167,7 +169,7 @@ export default class Browser extends Component {
     let created_days = Math.round(Math.abs(((new Date()).getTime() - item.created.getTime()) / (24 * 60 * 60 * 1000)))
     let last_modified_days = Math.round(Math.abs(((new Date()).getTime() - item.last_modified.getTime()) / (24 * 60 * 60 * 1000)))
     return (
-      <div title={'Created ' + timeago.ago(item.created) + ' / Modified ' + timeago.ago(item.last_modified)} className={'item' + (created_days <= 30 ? ' created' : '') + (last_modified_days <= 30 ? ' last_modified' : '')} key={item._id}>
+      <div title={'Created ' + timeago.ago(item.created) + ' / Modified ' + timeago.ago(item.last_modified)} className={'item' + (created_days <= 30 ? ' created' : '') + (last_modified_days <= 30 ? ' last_modified' : '') + (item.forked_by_me ? ' forked_by_me' : '')} key={item._id}>
         <Link to={'/' + item._id}>
           <span className='artist'>{item.artist + (item.year ? ' (' + item.year + ')' : '')}</span>
           <span className='title'>{item.title} </span>
@@ -175,7 +177,6 @@ export default class Browser extends Component {
         </Link>
         {this.props.authed() && <i className={'fa fa-star ' + (this.state.favorites.get(item._id.toString()) ? 'favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
         {item.forked_songcheat_id && <i className='fa fa-code-fork' onClick={() => this.forkDiff(item._id, item.forked_songcheat_id)} />}
-
       </div>
     )
   }
