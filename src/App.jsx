@@ -348,7 +348,17 @@ class App extends Component {
 
       <header className='App-header' style={{position: 'relative'}}>
         <div style={{ position: 'absolute', left: '5px' }}>
-          <Player audioCtx={this.audioCtx} rhythm={false} songcheat={this.state.songcheat} units={this.getDisplayedUnits()} />
+          <Player
+            onPlay={() => {
+              if (this.videoPlayer) this.videoPlayer.seekTo(this.state.songcheat.offset, 'seconds')
+              this.setState({playing: true})
+            }}
+            onPause={playing => this.setState({playing})}
+            onStop={() => this.setState({playing: false})}
+            audioCtx={this.audioCtx}
+            rhythm={false}
+            songcheat={this.state.songcheat}
+            units={this.getDisplayedUnits()} />
         </div>
         <div style={{ position: 'absolute', right: '5px' }}>
           <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
@@ -374,7 +384,10 @@ class App extends Component {
           editLayout={this.state.editLayout}
           onLayoutChanged={layout => this.updateLayout(layout)}
           clear={this.state.clear}>
-          <General label='General' songcheat={this.state.songcheat} />
+          <General label='General'
+            playing={this.state.playing}
+            songcheat={this.state.songcheat}
+            ref={c => this.videoPlayer = c ? c.videoPlayer : null} />
           <Chords label='Chords'
             songcheat={this.state.songcheat}
             showInline={this.state.settings.get('Chords.showInline')}

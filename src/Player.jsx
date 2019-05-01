@@ -38,6 +38,9 @@ class PlayerUI extends Component {
         type: this.props.songcheat.wave,
         onDone: () => this.setState({note: null}),
         onNote: (note, isBar, isBeat, isUp, isDown, isArpeggiated) => this.setState({note, isBar, isBeat, isUp, isDown, isArpeggiated}),
+        onPlay: () => this.props.onPlay(),
+        onPause: playing => this.props.onPause(playing),
+        onStop: () => this.props.onStop(),
         onCountdown: (c) => this.setState({countdown: c || ''})
       })
 

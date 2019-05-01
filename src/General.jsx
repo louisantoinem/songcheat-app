@@ -5,6 +5,14 @@ import './General.css'
 
 class General extends Component {
 
+  constructor (props) {
+    super(props)
+    // state.preload is used to force the player to preload (in muted state)
+    // state.preload true means that 'playing' and 'muted' player props are true
+    // as soon as the player has started playing (onPlay prop) preload is set back to false
+    this.state = { preload: true }
+  }
+
   render () {
     return !this.props.songcheat ? null :
     <div className='General'>
@@ -13,7 +21,15 @@ class General extends Component {
       <p>{this.props.songcheat.comment}</p>
 
       {this.props.songcheat.video && <div>
-        {ReactPlayer.canPlay(this.props.songcheat.video) && <ReactPlayer controls url={this.props.songcheat.video} />}
+        {ReactPlayer.canPlay(this.props.songcheat.video) &&
+          <ReactPlayer
+            ref={c => this.videoPlayer = c}
+            onPlay={() => { if (this.state.preload) this.setState({ preload: false }) }}
+            muted={this.state.preload}
+            playing={this.state.preload || this.props.playing}
+            url={this.props.songcheat.video}
+            controls
+        />}
         {!ReactPlayer.canPlay(this.props.songcheat.video) && <a target='blank_' href={this.props.songcheat.video} >{this.props.songcheat.video}</a>}
       </div>}
 
