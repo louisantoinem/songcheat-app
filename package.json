@@ -17,7 +17,7 @@
     "react-ace": "^5.10.0",
     "react-dom": "^16.8.4",
     "react-dropzone": "^4.3.0",
-    "react-player": "^1.9.3",
+    "react-player": "^1.11.0",
     "react-popup": "^0.9.3",
     "react-resize-detector": "^1.1.0",
     "react-router": "^4.3.1",
