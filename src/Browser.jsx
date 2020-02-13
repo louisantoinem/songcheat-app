@@ -1,7 +1,7 @@
 // react
 import React, { Component } from 'react'
 import { Link, Route } from 'react-router-dom'
-import { Map } from 'immutable'
+import { OrderedMap, Map } from 'immutable'
 
 // prime react components
 import { Button } from 'primereact/components/button/Button'
@@ -40,7 +40,8 @@ export default class Browser extends Component {
       'Search.search': '',
       'Search.mode': 'all',
       'Search.favorite': false,
-      'Search:nofork': false
+      'Search:nofork': false,
+      'Search:sortbycreated': false
     }
 
     // load stored settings if any
@@ -63,6 +64,7 @@ export default class Browser extends Component {
       let mode = this.props.authed() ? this.state.settings.get('Search.mode') : 'all'
       let favorite = this.props.authed() ? this.state.settings.get('Search.favorite') : false
       let nofork = this.props.authed() ? this.state.settings.get('Search.nofork') : false
+      let sortbycreated = this.props.authed() ? this.state.settings.get('Search.sortbycreated') : false
       let what = `${mode.toLowerCase()} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
       if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
       else {
@@ -80,7 +82,8 @@ export default class Browser extends Component {
         if (mode === 'mine') filter.owner_id = this.stitchClient.authedId()
         if (mode === 'other') filter.owner_id = { $ne: this.stitchClient.authedId()}
         if (nofork) filter.forked_songcheat_id = { $exists: false }
-        let data = await this.songcheats.find(filter).sort({ type: 1, artist: 1, year: 1}).execute()
+        let sort = sortbycreated ? { created: -1 } : { type: 1, artist: 1, year: 1}
+        let data = await this.songcheats.find(filter).sort(sort).execute()
 
         // get favorite songcheats for this user by songcheat_id
         let ratings = await this.ratings.find({ user_id: this.stitchClient.authedId() }).execute()
@@ -88,7 +91,7 @@ export default class Browser extends Component {
         for (let rating of ratings) if (rating.favorite) favorites.set(rating.songcheat_id.toString(), true)
         favorites = Map(favorites)
         console.warn(`Done listing ${what}`)
-        this.setState({ favorites, data: this.groupByType(data, favorite ? favorites : null) })
+        this.setState({ favorites, data: this.groupByCategory(data, favorite ? favorites : null) })
       }
     }
   }
@@ -101,11 +104,13 @@ export default class Browser extends Component {
     if (prevState.settings !== this.state.settings) this.mutex.runExclusive(() => this.load())
   }
 
-  groupByType (data, keep) {
+  groupByCategory (data, keep) {
+    let sortbycreated = this.props.authed() ? this.state.settings.get('Search.sortbycreated') : false
+
     // initialize result
     let groupedData = {
       length: data.length,
-      dataByType: new window.Map()
+      dataByCategory: new window.Map()
     }
 
     // for each fork owned by me, find original and flag it
@@ -115,23 +120,23 @@ export default class Browser extends Component {
       }
     }
 
-    // group by type, keeping only given item ids if any and listing distinct artists on the way
+    // group by category, keeping only given item ids if any and listing distinct artists on the way
     for (let item of data) {
       if (keep && !keep.get(item._id.toString())) groupedData.length--
       else {
-        let type = item.type || '(unknown type)'
-        if (!groupedData.dataByType.get(type)) groupedData.dataByType.set(type, { artists: new window.Map(), items: [] })
-        groupedData.dataByType.get(type).items.push(item)
-        groupedData.dataByType.get(type).artists.set(item.artist, 1)
+        let category = sortbycreated ? timeago.ago(item.created).replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years') : (item.type || '(unknown type)')
+        if (!groupedData.dataByCategory.get(category)) groupedData.dataByCategory.set(category, { artists: new window.Map(), items: [], created: item.created.getTime() })
+        groupedData.dataByCategory.get(category).items.push(item)
+        groupedData.dataByCategory.get(category).artists.set(item.artist, 1)
       }
     }
 
-    // sort types by descending number of items
-    groupedData.dataByType = Map(
+    // sort categories by descending number of items or creation date
+    groupedData.dataByCategory = OrderedMap(
       Array
-        .from(groupedData.dataByType)
+        .from(groupedData.dataByCategory)
         .sort((a, b) => {
-          return b[1].items.length - a[1].items.length
+          return sortbycreated ? b[1].created - a[1].created : b[1].items.length - a[1].items.length
         })
     )
 
@@ -243,6 +248,8 @@ export default class Browser extends Component {
             { this.props.authed() && <label>Favorites only</label> }
             { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.nofork', e.checked)} checked={this.state.settings.get('Search.nofork')} style={{marginLeft: '.5em'}} /> }
             { this.props.authed() && <label>Ignore forks</label> }
+            { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.sortbycreated', e.checked)} checked={this.state.settings.get('Search.sortbycreated')} style={{marginLeft: '.5em'}} /> }
+            { this.props.authed() && <label>Sort by creation date</label> }
           </div>
 
         </div>
@@ -253,7 +260,7 @@ export default class Browser extends Component {
       { this.state.data &&
         <div>
           <h2>{this.state.data.length} {this.loaded.get('Search.favorite') ? ' favorite ' : ''} songcheats found {this.loaded.get('Search.search') ? 'matching "' + this.loaded.get('Search.search') + '"' : ''}</h2>
-          { this.items(this.state.data.dataByType) }
+          { this.items(this.state.data.dataByCategory) }
         </div>
       }
     </div>
