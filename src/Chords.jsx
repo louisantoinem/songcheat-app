@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 
 // business modules
-import {Utils, ChordPix} from 'songcheat-core'
+import {Utils, ChordGen} from 'songcheat-core'
 
 // prime react components
 import {Checkbox} from 'primereact/components/checkbox/Checkbox'
@@ -21,7 +21,7 @@ class Chords extends Component {
 
   chordImage (chord) {
     try {
-      return <img alt={chord.tablature} title={this.props.songcheat ? this.props.songcheat.fretboard.chordPitches(chord) : chord.comment} src={ChordPix.url(chord, 175)} />
+      return <img alt={chord.tablature} title={this.props.songcheat ? this.props.songcheat.fretboard.chordPitches(chord) : chord.comment} src={ChordGen.url(chord, 175)} />
     } catch (e) {
       return <p className='error' style={{ margin: '12px' }}>{e.message}</p>
     }
