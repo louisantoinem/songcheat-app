@@ -124,7 +124,7 @@ export default class Browser extends Component {
     for (let item of data) {
       if (keep && !keep.get(item._id.toString())) groupedData.length--
       else {
-        let category = sortbycreated ? timeago.ago(item.created).replace(/[0-9]+ hours/, 'hours').replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years') : (item.type || '(unknown type)')
+        let category = sortbycreated ? timeago.ago(item.created).replace(/[0-9]+ minutes/, 'minutes').replace(/[0-9]+ hours/, 'hours').replace(/[0-9]+ days/, 'days').replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years') : (item.type || '(unknown type)')
         if (!groupedData.dataByCategory.get(category)) groupedData.dataByCategory.set(category, { artists: new window.Map(), items: [], created: item.created.getTime() })
         groupedData.dataByCategory.get(category).items.push(item)
         groupedData.dataByCategory.get(category).artists.set(item.artist, 1)
