@@ -298,7 +298,7 @@ class App extends Component {
 
   // Returns default layout for given mode
   defaultLayout (editMode) {
-    return new Layout(editMode ? {left: [5], right: [0, 1, 2, 3, 4]} : {left: [0, 1, 2], right: [3, 4]})
+    return new Layout(editMode ? {left: [5], right: [0, 1, 2, 3, 4]} : {left: [0, 1, 2], right: [3, 4], position: 660}) // 660 = embedded video width
   }
 
   // Default filename used when saving a new songcheat for the first time

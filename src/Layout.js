@@ -47,7 +47,7 @@ class Layout {
 
     let first = this._convert(node.left || node.top)
     let second = this._convert(node.right || node.bottom)
-    return new LayoutSplitNode(first, second, orientation, '50%')
+    return new LayoutSplitNode(first, second, orientation, node.position || '50%')
   }
 
   static reviver (obj) {
