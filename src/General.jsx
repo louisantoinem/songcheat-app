@@ -13,6 +13,12 @@ class General extends Component {
     this.state = { preload: this.props.songcheat && this.props.songcheat.offset >= 0 }
   }
 
+  componentDidUpdate (prevProps, prevState) {
+    if (prevProps.songcheat !== this.props.songcheat) {
+      this.setState({ preload: this.props.songcheat && this.props.songcheat.offset >= 0 })
+    }
+  }
+
   render () {
     return !this.props.songcheat ? null :
     <div className='General'>
