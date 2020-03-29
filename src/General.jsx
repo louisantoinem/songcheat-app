@@ -10,13 +10,7 @@ class General extends Component {
     // state.preload is used to force the player to preload (in muted state)
     // state.preload true means that 'playing' and 'muted' player props are true
     // as soon as the player has started playing (onPlay prop) preload is set back to false
-    this.state = { preload: this.props.songcheat && this.props.songcheat.offset >= 0 }
-  }
-
-  componentDidUpdate (prevProps, prevState) {
-    if (prevProps.songcheat !== this.props.songcheat) {
-      this.setState({ preload: this.props.songcheat && this.props.songcheat.offset >= 0 })
-    }
+    this.state = { preload: true }
   }
 
   render () {
