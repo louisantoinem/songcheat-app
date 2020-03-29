@@ -350,8 +350,10 @@ class App extends Component {
         <div style={{ position: 'absolute', left: '5px' }}>
           <Player
             onPlay={() => {
-              if (this.videoPlayer) this.videoPlayer.seekTo(this.state.songcheat.offset, 'seconds')
-              this.setState({playing: true})
+              if (this.state.songcheat && this.state.songcheat.offset >= 0) {
+                if (this.videoPlayer) this.videoPlayer.seekTo(this.state.songcheat.offset, 'seconds')
+                this.setState({playing: true})
+              }
             }}
             onPause={playing => this.setState({playing})}
             onStop={() => this.setState({playing: false})}
