@@ -61,8 +61,9 @@ class Rhythm extends Component {
       // and clear/redraw original canvas with concatenated rhythm names
       canvas = o.canvas
       if (this.props.rendering !== 'canvas') while (canvas.firstChild) canvas.removeChild(canvas.firstChild)
-      let concat = o.rhythm.name + ' & ' + rhythm.name
+      let concat = o.rhythm.name + ' / ' + rhythm.name
       score = score.replace('[Rhythm ' + rhythm.name + ']', '[Rhythm ' + concat + ']')
+      o.rhythm.name = concat
     } else {
       // else unhide canvas if needed
       document.getElementById('container.r.' + rhythm.id).style.display = ''
