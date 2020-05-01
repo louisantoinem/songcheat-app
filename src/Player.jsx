@@ -104,6 +104,17 @@ class PlayerUI extends Component {
     }
   }
 
+  unitIndicator () {
+    let offset = this.state.note ? this.state.note.offset : null
+    let unit = offset ? this.unitPerOffset.get(offset.units) : null
+    return unit ? unit.name : '?'
+  }
+
+  barIndicator () {
+    let offset = this.state.note ? this.state.note.offset : null
+    return (Math.floor(offset.units / offset.time.bar.units) + 1) + '/' + this.player.length.bars()
+  }
+
   render () {
     return <div className={'Player ' + (this.props.className || '')}>
 
@@ -112,9 +123,8 @@ class PlayerUI extends Component {
         {this.state.note && <div>
           {this.state.note.rest && <span>REST</span>}
           {!this.state.note.rest && this.state.note.chord && <span>{this.state.note.chord.name}</span>}
-          {this.state.note && this.unitPerOffset.get(this.state.note.offset.units) && <span className='unitname'>{this.unitPerOffset.get(this.state.note.offset.units).name}</span>}
-          {/* {this.state.isDown && <span className='small'>D</span>}
-          {this.state.isUp && <span className='small'>U</span>} */}
+          {<span className='indicator'>{this.unitIndicator()}</span>}
+          {<span className='indicator'>{this.barIndicator()}</span>}
         </div>}
       </span>
 
