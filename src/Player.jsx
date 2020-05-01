@@ -26,8 +26,18 @@ class PlayerUI extends Component {
       let units = this.props.units || this.props.songcheat.structure
 
       // concat score of units
+      this.unitPerOffset = new Map()
       let score = new Score(this.props.songcheat.signature.time)
-      for (let unit of units) score.append(unit.part.score)
+      let offset = score.start()
+      for (let unit of units) {
+        score.append(unit.part.score)
+
+        // register unit for each offset
+        for (let note of unit.part.score.notes) {
+          this.unitPerOffset.set(offset.units, unit)
+          offset = offset.add(note.duration)
+        }
+      }
 
       // create player on these notes
       if (this.player) this.player.stop()
@@ -102,6 +112,7 @@ class PlayerUI extends Component {
         {this.state.note && <div>
           {this.state.note.rest && <span>REST</span>}
           {!this.state.note.rest && this.state.note.chord && <span>{this.state.note.chord.name}</span>}
+          {this.state.note && this.unitPerOffset.get(this.state.note.offset.units) && <span className='unitname'>{this.unitPerOffset.get(this.state.note.offset.units).name}</span>}
           {/* {this.state.isDown && <span className='small'>D</span>}
           {this.state.isUp && <span className='small'>U</span>} */}
         </div>}

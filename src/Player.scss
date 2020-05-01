@@ -25,6 +25,13 @@
     top: 10px;
     right: 10px;
 
+    span.unitname {
+      font-family: 'Roboto';
+      font-size: 0.25em;
+      display: block;
+      text-align: right;
+    }
+
     span.small {
       font-size: 0.25em;
       display: block;
@@ -37,10 +44,10 @@
     top: 26px;
     width: 300px;
     color: white;
-    background-color: black;
+    background-color: #666;
     padding: 0 10px 5px;
     border: 1px solid white;
-    opacity: 0.9;
+    opacity: 0.97;
     font-size: 0.9em;
 
     > div {
