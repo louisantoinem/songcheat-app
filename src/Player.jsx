@@ -124,7 +124,7 @@ class PlayerUI extends Component {
           {this.state.note.rest && <span>REST</span>}
           {!this.state.note.rest && this.state.note.chord && <span>{this.state.note.chord.name}</span>}
           {<span className='indicator'>{this.unitIndicator()}</span>}
-          {<span className='indicator'>{this.barIndicator()}</span>}
+          {<span className='indicator small'>{this.barIndicator()}</span>}
         </div>}
       </span>
 
