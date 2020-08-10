@@ -82,6 +82,7 @@ export default class Browser extends Component {
         if (mode === 'mine') filter.owner_id = this.stitchClient.authedId()
         if (mode === 'other') filter.owner_id = { $ne: this.stitchClient.authedId()}
         if (nofork) filter.forked_songcheat_id = { $exists: false }
+        filter.type = { $ne: 'Hidden' }
         let sort = sortbycreated ? { created: -1 } : { type: 1, artist: 1, year: 1}
         let data = await this.songcheats.find(filter).sort(sort).execute()
 
