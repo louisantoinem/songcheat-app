@@ -257,7 +257,7 @@ class App extends Component {
         // document.created = new Date()
         // document.last_modified = new Date()
         let inserted = await this.songcheats.insertOne(document)
-        let updated = await this.songcheats.updateOne({ '_id': inserted.insertedId }, { '$currentDate': { created: { '$type': 'date' }, last_modified: { '$type': 'date' } }})
+        await this.songcheats.updateOne({ '_id': inserted.insertedId }, { '$currentDate': { created: { '$type': 'date' }, last_modified: { '$type': 'date' } }})
         console.warn(`Inserted document with _id ${inserted.insertedId}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
         this.props.history.replace('/' + inserted.insertedId)
