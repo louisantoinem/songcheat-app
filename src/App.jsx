@@ -242,15 +242,22 @@ class App extends Component {
 
     try {
       if (this._id) {
-        if (!quiet) document.last_modified = new Date()
-        let updated = await this.songcheats.updateOne({ '_id': this._id }, { '$set': document })
+        let update = { '$set': document }
+        // TODO: document.last_modified = new Date() ... does not work anymore
+        // after one hour of googling, I could not find how to pass a Date
+        // I therefore used the $currentDate operator which fits my need
+        if (!quiet) update['$currentDate'] = { last_modified: { '$type': 'date' } }
+        let updated = await this.songcheats.updateOne({ '_id': this._id }, update)
         console.warn(`Updated ${updated.matchedCount} document`)
         if (updated.matchedCount === 0) throw new Error(`ID ${this._id} not found`)
         this.growl.show({ severity: 'success', summary: 'SongCheat saved', detail: `Sucessfully saved songcheat ${this.defaultFilename()}` })
       } else {
-        document.created = new Date()
-        document.last_modified = new Date()
+        // TODO: document.last_modified = new Date() ... does not work anymore
+        // I have to set them with updateOne after the insert
+        // document.created = new Date()
+        // document.last_modified = new Date()
         let inserted = await this.songcheats.insertOne(document)
+        let updated = await this.songcheats.updateOne({ '_id': inserted.insertedId }, { '$currentDate': { created: { '$type': 'date' }, last_modified: { '$type': 'date' } }})
         console.warn(`Inserted document with _id ${inserted.insertedId}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
         this.props.history.replace('/' + inserted.insertedId)
