@@ -40,8 +40,8 @@ export default class Browser extends Component {
       'Search.search': '',
       'Search.mode': 'all',
       'Search.favorite': false,
-      'Search:nofork': false,
-      'Search:sortbycreated': false
+      'Search.nofork': false,
+      'Search.sortby': 'type' // or 'created' or 'artist'
     }
 
     // load stored settings if any
@@ -64,7 +64,7 @@ export default class Browser extends Component {
       let mode = this.props.authed() ? this.state.settings.get('Search.mode') : 'all'
       let favorite = this.props.authed() ? this.state.settings.get('Search.favorite') : false
       let nofork = this.props.authed() ? this.state.settings.get('Search.nofork') : false
-      let sortbycreated = this.props.authed() ? this.state.settings.get('Search.sortbycreated') : false
+      let sortby = this.props.authed() ? this.state.settings.get('Search.sortby') : 'type'
       let what = `${mode.toLowerCase()} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
       if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
       else {
@@ -83,7 +83,9 @@ export default class Browser extends Component {
         if (mode === 'other') filter.owner_id = { $ne: this.stitchClient.authedId()}
         if (nofork) filter.forked_songcheat_id = { $exists: false }
         filter.type = { $ne: 'Hidden' }
-        let sort = sortbycreated ? { created: -1 } : { type: 1, artist: 1, year: 1}
+        let sort = { created: -1 }
+        if (sortby == 'type') sort = { type: 1, artist: 1, year: 1}
+        if (sortby == 'artist') sort = { artist: 1, type: 1, year: 1}
         let data = await this.songcheats.find(filter).sort(sort).execute()
 
         // get favorite songcheats for this user by songcheat_id
@@ -106,7 +108,7 @@ export default class Browser extends Component {
   }
 
   groupByCategory (data, keep) {
-    let sortbycreated = this.props.authed() ? this.state.settings.get('Search.sortbycreated') : false
+    let sortby = this.props.authed() ? this.state.settings.get('Search.sortby') : 'type'
 
     // initialize result
     let groupedData = {
@@ -125,7 +127,9 @@ export default class Browser extends Component {
     for (let item of data) {
       if (keep && !keep.get(item._id.toString())) groupedData.length--
       else {
-        let category = sortbycreated ? timeago.ago(item.created).replace(/[0-9]+ minutes/, 'minutes').replace(/[0-9]+ hours/, 'hours').replace(/[0-9]+ days/, 'days').replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years') : (item.type || '(unknown type)')
+        let category = timeago.ago(item.created).replace(/[0-9]+ minutes/, 'minutes').replace(/[0-9]+ hours/, 'hours').replace(/[0-9]+ days/, 'days').replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years')
+        if (sortby == 'type') category = (item.type || '(unknown type)')
+        if (sortby == 'artist') category = (item.artist || '(unknown artist)')
         if (!groupedData.dataByCategory.get(category)) groupedData.dataByCategory.set(category, { artists: new window.Map(), items: [], created: item.created.getTime() })
         groupedData.dataByCategory.get(category).items.push(item)
         groupedData.dataByCategory.get(category).artists.set(item.artist, 1)
@@ -137,7 +141,9 @@ export default class Browser extends Component {
       Array
         .from(groupedData.dataByCategory)
         .sort((a, b) => {
-          return sortbycreated ? b[1].created - a[1].created : b[1].items.length - a[1].items.length
+          if (sortby == 'created') return b[1].created - a[1].created
+          if (sortby == 'type') return b[1].items.length - a[1].items.length
+          if (sortby == 'artist') return b[1].items.length - a[1].items.length
         })
     )
 
@@ -244,13 +250,23 @@ export default class Browser extends Component {
             />
           </div>}
 
+          { this.props.authed() && <div className='optionsRow'>
+            <Select
+              value={this.state.settings.get('Search.sortby')}
+              onChange={(selectedOption) => { if (selectedOption) this.updateSetting('Search.sortby', selectedOption.value) }}
+              options={[
+                { value: 'type', label: 'By type' },
+                { value: 'created', label: 'By creation date' },
+                { value: 'artist', label: 'By artist' }
+              ]}
+            />
+          </div>}
+
           <div className='optionsRow' style={{marginTop: '7px'}}>
             { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.favorite', e.checked)} checked={this.state.settings.get('Search.favorite')} style={{marginLeft: '.5em'}} /> }
             { this.props.authed() && <label>Favorites only</label> }
             { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.nofork', e.checked)} checked={this.state.settings.get('Search.nofork')} style={{marginLeft: '.5em'}} /> }
             { this.props.authed() && <label>Ignore forks</label> }
-            { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.sortbycreated', e.checked)} checked={this.state.settings.get('Search.sortbycreated')} style={{marginLeft: '.5em'}} /> }
-            { this.props.authed() && <label>Sort by creation date</label> }
           </div>
 
         </div>
