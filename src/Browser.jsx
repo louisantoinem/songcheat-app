@@ -84,8 +84,8 @@ export default class Browser extends Component {
         if (nofork) filter.forked_songcheat_id = { $exists: false }
         filter.type = { $ne: 'Hidden' }
         let sort = { created: -1 }
-        if (sortby == 'type') sort = { type: 1, artist: 1, year: 1}
-        if (sortby == 'artist') sort = { artist: 1, type: 1, year: 1}
+        if (sortby === 'type') sort = { type: 1, artist: 1, year: 1}
+        if (sortby === 'artist') sort = { artist: 1, type: 1, year: 1}
         let data = await this.songcheats.find(filter).sort(sort).execute()
 
         // get favorite songcheats for this user by songcheat_id
@@ -128,8 +128,8 @@ export default class Browser extends Component {
       if (keep && !keep.get(item._id.toString())) groupedData.length--
       else {
         let category = timeago.ago(item.created).replace(/[0-9]+ minutes/, 'minutes').replace(/[0-9]+ hours/, 'hours').replace(/[0-9]+ days/, 'days').replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years')
-        if (sortby == 'type') category = (item.type || '(unknown type)')
-        if (sortby == 'artist') category = (item.artist || '(unknown artist)')
+        if (sortby === 'type') category = (item.type || '(unknown type)')
+        if (sortby === 'artist') category = (item.artist || '(unknown artist)')
         if (!groupedData.dataByCategory.get(category)) groupedData.dataByCategory.set(category, { artists: new window.Map(), items: [], created: item.created.getTime() })
         groupedData.dataByCategory.get(category).items.push(item)
         groupedData.dataByCategory.get(category).artists.set(item.artist, 1)
@@ -141,9 +141,9 @@ export default class Browser extends Component {
       Array
         .from(groupedData.dataByCategory)
         .sort((a, b) => {
-          if (sortby == 'created') return b[1].created - a[1].created
-          if (sortby == 'type') return b[1].items.length - a[1].items.length
-          if (sortby == 'artist') return b[1].items.length - a[1].items.length
+          if (sortby === 'type') return b[1].items.length - a[1].items.length
+          if (sortby === 'artist') return b[1].items.length - a[1].items.length
+          return b[1].created - a[1].created
         })
     )
 
