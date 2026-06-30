@@ -2,7 +2,7 @@
 // `getToken` is an async function returning the current Auth0 access token,
 // or null when the visitor is not authenticated (reads stay public).
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8282/api/v1'
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8282/api/v1'
 
 // the API serializes dates as ISO strings; revive them so the rest of the app
 // can keep calling .getTime() / timeago.ago() as it did with Stitch

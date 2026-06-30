@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom'
 import { Route } from 'react-router'
 import { BrowserRouter } from 'react-router-dom'
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
-import registerServiceWorker from './registerServiceWorker'
 
 // app components
 import Auth from './Auth'
@@ -64,15 +63,13 @@ function Root () {
 
 ReactDOM.render(
   <Auth0Provider
-    domain={process.env.REACT_APP_AUTH0_DOMAIN}
-    clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
+    domain={import.meta.env.VITE_AUTH0_DOMAIN}
+    clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
     authorizationParams={{
       redirect_uri: window.location.origin,
-      audience: process.env.REACT_APP_AUTH0_AUDIENCE
+      audience: import.meta.env.VITE_AUTH0_AUDIENCE
     }}
   >
     <Root />
   </Auth0Provider>,
   document.getElementById('root'))
-
-registerServiceWorker()

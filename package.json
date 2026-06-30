@@ -20,7 +20,6 @@
     "react-resize-detector": "^1.1.0",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
-    "react-scripts": "^5.0.1",
     "react-select": "^1.3.0",
     "react-split-pane": "^0.1.92",
     "react-tabs": "^2.3.1",
@@ -31,24 +30,16 @@
     "vextab": "^2.0.13"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "rsync -avr build/ root@budbox:/home/data/songcheat"
   },
   "devDependencies": {
-    "sass": "^1.77.0"
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+    "@vitejs/plugin-react": "^4.3.4",
+    "sass": "^1.77.0",
+    "vite": "^5.4.0",
+    "vite-plugin-node-polyfills": "^0.22.0"
   }
 }
