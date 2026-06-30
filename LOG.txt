@@ -1,4 +1,6 @@
-30 juin 2026 de 10:18 à 12:14
+30 juin 2026
+
+> 10:20 à 12:15
 
 BaaS Stitch a été discontinué: on va migrer vers une API rest custom !
 
@@ -33,11 +35,24 @@ songcheat mongodb
 │ 5c4a37476fa00bf8014caa39 │ 7         │ 3       │
 └──────────────────────────┴───────────┴─────────┘
 
-Bilan: ça fonctionne en local.
+Bilan: ça fonctionne en local !
 
-TODO :
-- migrer ancien owner_id Stitch de Gerome 5c4a37476fa00bf8014caa39 vers son UserID Auth0
-- domaine songcheat.com pointe sur budbox
-- installer songcheat-api sur budbox comme hexxitapi, accessible via https://songcheat.com/api/v1
-- faire un deploy de songcheat-app sur budbox comme hexxy
+> 12:45 - 14:05
 
+Déploiement:
+- domaine songcheat.com pointe sur budbox: remis les serveurs DNS par défaut + A vers 5.135.131.204
+- npm run deploy: rsync songcheat-app/build vers budbox:/data/songcheat
+- vhost: songcheat.com.conf + enabled + systemctl reload apache2
+- https: certbot --apache -d songcheat.com
+- rsync de songcheat-api vers budbox:/data/songcheat-api
+- songcheat.com-le-ssl.conf: ajouté proxypass comme dans hexx.it-le-ssl.conf mais avec port 8282 + systemctl reload apache2 => API accessible via https://songcheat.com/api/v1
+- installé et lancé le service songcheat-api :
+    cp songcheat-api.service /etc/systemd/system/
+    systemctl daemon-reload
+    systemctl enable --now songcheat-api
+    systemctl status songcheat-api
+    journalctl -u songcheat-api -f
+- créé .htaccess dans budbox:/data/songcheat pour accès direct aux songcheat (existait aussi pour hexxit)
+
+WIP: 
+Demandé à Gerome de se connecter avec Google => migrer ancien owner_id Stitch de Gerome 5c4a37476fa00bf8014caa39 vers son UserID Auth0

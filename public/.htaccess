@@ -1,0 +1,10 @@
+RewriteEngine On
+
+# If URL points to an existing file don't do any rewriting
+RewriteCond %{REQUEST_FILENAME} -s [OR]
+RewriteCond %{REQUEST_FILENAME} -l [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^.*$ - [NC,L]
+
+# Forwards everything to index
+RewriteRule ^.*$ index.html [NC,L]
