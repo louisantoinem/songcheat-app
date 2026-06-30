@@ -1,0 +1,108 @@
+.Index {
+  position: relative;
+  padding: 10px; }
+  .Index div.diff {
+    position: fixed;
+    top: 10vh;
+    left: 10vw;
+    width: 80vw;
+    height: 80vh;
+    white-space: pre;
+    font-family: monospace;
+    font-size: 1.2em;
+    border: 2px solid #666;
+    z-index: 2;
+    background-color: white; }
+    .Index div.diff > div.close {
+      position: absolute;
+      right: 10px;
+      top: 8px;
+      cursor: pointer;
+      color: black;
+      font-size: 2em; }
+    .Index div.diff > div.loading {
+      font-size: 1.5em;
+      padding: 20px; }
+    .Index div.diff > div.contents {
+      overflow: auto;
+      box-sizing: border-box;
+      padding: 10px;
+      height: 80vh; }
+      .Index div.diff > div.contents > span {
+        color: #777;
+        font-weight: lighter; }
+      .Index div.diff > div.contents > span.red {
+        color: red;
+        font-weight: normal; }
+      .Index div.diff > div.contents > span.green {
+        color: green;
+        font-weight: normal; }
+  .Index div.optionsRow {
+    float: left;
+    margin: 0 10px 0 0; }
+    .Index div.optionsRow input {
+      height: 30px; }
+    .Index div.optionsRow > div.Select {
+      width: 150px; }
+  .Index .SpinnerContainer {
+    width: 100%;
+    padding-top: 15%;
+    text-align: center; }
+  .Index .item {
+    margin: 5px;
+    padding: 4px 6px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    display: inline-block;
+    position: relative; }
+    .Index .item.forked_by_me {
+      opacity: 0.5; }
+    .Index .item a {
+      float: left;
+      color: black;
+      text-decoration: none;
+      font-size: 0.9em; }
+      .Index .item a span {
+        display: block; }
+      .Index .item a span.artist {
+        font-weight: bold;
+        font-size: 0.85em; }
+      .Index .item a span.title {
+        margin-top: 5px; }
+      .Index .item a span.info {
+        font-size: 0.7em;
+        margin-top: 5px; }
+    .Index .item i.fa-code-fork,
+    .Index .item i.fa-star {
+      float: right;
+      margin-top: 38px;
+      font-size: 0.85em;
+      cursor: pointer; }
+    .Index .item i.fa-code-fork {
+      margin-right: 3px; }
+    .Index .item i.fa-star {
+      opacity: 0.2; }
+      .Index .item i.fa-star.favorite {
+        opacity: 1; }
+    .Index .item.created a span.info, .Index .item.last_modified a span.info {
+      font-weight: bold; }
+    .Index .item.created {
+      border-color: #2399e5; }
+      .Index .item.created a {
+        color: #2399e5; }
+        .Index .item.created a span.artist {
+          margin-right: 25px; }
+      .Index .item.created:after {
+        content: "NEW";
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        font-size: 0.5em;
+        font-weight: bold;
+        color: red; }
+    .Index .item:hover {
+      background-color: #2399e5; }
+      .Index .item:hover a {
+        color: white; }
+  .Index .items h4 {
+    font-size: 0.8em; }

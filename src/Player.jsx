@@ -7,7 +7,7 @@ import {Utils, Duration, Player, Score, waveTables} from 'songcheat-core'
 import {RadioButton} from 'primereact/components/radiobutton/RadioButton'
 
 // css
-import './Player.css'
+import './Player.scss'
 
 class PlayerUI extends Component {
 

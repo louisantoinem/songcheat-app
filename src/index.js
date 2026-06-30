@@ -1,53 +1,48 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import ReactDOM from 'react-dom'
 import { Route } from 'react-router'
 import { BrowserRouter } from 'react-router-dom'
+import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
 import registerServiceWorker from './registerServiceWorker'
-import { StitchClientFactory } from 'mongodb-stitch'
 
 // app components
 import Auth from './Auth'
 import App from './App.jsx'
 import Browser from './Browser.jsx'
+import createApi from './api'
 import './index.css'
 
-let appId = 'songcheat-stitch-irqmn'
-let mongodbService = 'mongodb-atlas'
-let options = {}
+// create audio context once for the whole app
+const audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)()
 
-if (process.env.APP_ID) appId = process.env.APP_ID
-if (process.env.MONGODB_SERVICE) mongodbService = process.env.MONGODB_SERVICE
-if (process.env.STITCH_URL) options.baseUrl = process.env.STITCH_URL;
+// Bridge between Auth0's hook-based API and the (class-based) app components:
+// builds the REST client with a token getter and passes auth state down as props.
+function Root () {
+  const { isLoading, isAuthenticated, user, getAccessTokenSilently, loginWithRedirect, logout } = useAuth0()
 
-(async function () {
-  // create audio context
-  let audioCtx = new (window.AudioContext || window.webkitAudioContext || window.audioContext)()
+  const getToken = useCallback(async () => {
+    if (!isAuthenticated) return null
+    try { return await getAccessTokenSilently() } catch (e) { console.error(e); return null }
+  }, [isAuthenticated, getAccessTokenSilently])
 
-  // get stitch client connection
-  let stitchClient = await StitchClientFactory.create(appId, options)
+  const api = useMemo(() => createApi(getToken), [getToken])
 
-  // auhenticate as guest if not authed yet
-  if (!stitchClient.isAuthenticated()) await stitchClient.authenticate('anon')
+  if (isLoading) return <div className='AppLoading'>Loading…</div>
 
-  // get user profile data
-  let userData = await stitchClient.userProfile()
+  // authed() returns true if signed in (i.e. not an anonymous visitor)
+  const authed = () => isAuthenticated
 
-  // authed() returns true if authed, not as a guest
-  let authed = () => {
-    for (let identity of userData.identities) {
-      if (identity.provider_type !== 'anon-user') return true
-    }
-    return false
+  const props = {
+    audioCtx,
+    api,
+    authed,
+    user,
+    userSub: user ? user.sub : null,
+    loginWithRedirect,
+    logout
   }
 
-  // get handle on songcheats Collection
-  let db = stitchClient.service('mongodb', mongodbService).db('songcheat')
-  let songcheats = db.collection('songcheats')
-  let ratings = db.collection('ratings')
-
-  let props = { audioCtx, stitchClient, songcheats, ratings, authed }
-
-  ReactDOM.render(
+  return (
     <BrowserRouter>
       <div>
         <Route exact path='/' render={routeProps =>
@@ -63,8 +58,21 @@ if (process.env.STITCH_URL) options.baseUrl = process.env.STITCH_URL;
           </div>
         } />
       </div>
-    </BrowserRouter>,
-    document.getElementById('root'))
-})()
+    </BrowserRouter>
+  )
+}
+
+ReactDOM.render(
+  <Auth0Provider
+    domain={process.env.REACT_APP_AUTH0_DOMAIN}
+    clientId={process.env.REACT_APP_AUTH0_CLIENT_ID}
+    authorizationParams={{
+      redirect_uri: window.location.origin,
+      audience: process.env.REACT_APP_AUTH0_AUDIENCE
+    }}
+  >
+    <Root />
+  </Auth0Provider>,
+  document.getElementById('root'))
 
 registerServiceWorker()

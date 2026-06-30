@@ -1,0 +1,52 @@
+.Auth {
+  background-color: #313131;
+  color: white;
+  padding: 3px;
+  text-align: right; }
+  .Auth .logout {
+    cursor: pointer;
+    font-size: 0.8em;
+    margin-left: 10px; }
+    .Auth .logout:hover {
+      text-decoration: underline; }
+  .Auth .home-link {
+    float: left;
+    text-align: left;
+    padding-top: 5px;
+    font-size: 0.95em; }
+    .Auth .home-link a,
+    .Auth .home-link a:visited {
+      text-decoration: none;
+      color: white;
+      margin-left: 5px; }
+  .Auth .login-links-panel {
+    margin-left: 5px; }
+  .Auth .profile-pic {
+    height: 30px;
+    width: 30px;
+    margin-right: 10px; }
+  .Auth .login-header {
+    display: inline-flex;
+    vertical-align: bottom;
+    align-items: center; }
+    .Auth .login-header .login-text {
+      color: #888; }
+      .Auth .login-header .login-text .username {
+        color: white;
+        font-weight: normal; }
+  .Auth .signin-button {
+    display: inline-flex;
+    vertical-align: bottom;
+    align-items: center;
+    cursor: pointer;
+    margin: 0 3px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px; }
+    .Auth .signin-button-text {
+      padding-left: 5px; }
+  .Auth .facebook-signin-logo {
+    height: 18px;
+    width: 18px;
+    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAMAAABhTZc9AAAAM1BMVEU7V53////7/P33+Pvm6vPe4++erM9HYaPs7/bY3uu8xd6uutiXpstfd7BNZ6dGYKM+Wp8D8PpVAAAAS0lEQVQoz2MYIoCfh5OZkZkFuyQvCyMYYJVk52DEI8vGiE+WFSjBzY7LTUxAWT6cLgYbSnVZRiTAJIBPlhWvXi68smz4XTUqS6IsADRcAScdHoCmAAAAAElFTkSuQmCC");
+    background-size: 18px 18px; }

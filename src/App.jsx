@@ -14,7 +14,6 @@ import { Growl } from 'primereact/components/growl/Growl'
 import Popup from 'react-popup'
 import Dropzone from 'react-dropzone'
 import saveAs from 'save-as'
-import { BSON } from 'mongodb-stitch'
 
 // app components
 import Patchwork from './Patchwork'
@@ -29,8 +28,8 @@ import Editor from './Editor'
 import Prompt from './Prompt'
 
 // css
-import './App.css'
-import './Popup.css'
+import './App.scss'
+import './Popup.scss'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/omega/theme.css'
 import 'primeicons/primeicons.css'
@@ -43,12 +42,11 @@ class App extends Component {
     this.parser = new Parser()
     this.compiler = new Compiler(0)
     this.audioCtx = this.props.audioCtx
-    this.stitchClient = this.props.stitchClient
-    this.songcheats = this.props.songcheats
+    this.api = this.props.api
 
-    // get _id from url, if it's a valid one
+    // get _id from url, if it's a valid ObjectId (e.g. '/new' is not => null)
     this._id = null
-    try { if (this.props.match.params._id) this._id = BSON.ObjectID(this.props.match.params._id) } catch (e) {}
+    if (this.props.match.params._id && /^[a-f0-9]{24}$/i.test(this.props.match.params._id)) this._id = this.props.match.params._id
 
     // load stored layouts if any or get default ones
     let layoutView = localStorage.getItem(this._key(false))
@@ -144,14 +142,14 @@ class App extends Component {
   componentDidMount () {
     // if a songcheats _id is given in url
     if (this._id) {
-      this.songcheats.findOne({ '_id': this._id }).then(document => {
+      this.api.getSongcheat(this._id).then(document => {
         if (document) {
           console.warn(`Loaded document with _id ${this._id}`)
           this.owner_id = document.owner_id
           this.songcheat(document.source, null, true)
           localStorage.setItem('SongCheat.App.LastLoadedId', this._id)
         }
-      })
+      }).catch(e => console.error(e))
     }
   }
 
@@ -172,7 +170,7 @@ class App extends Component {
 
       // when loading a new songcheat, reset displayedUnits to all units
       let settings = this.state.settings
-      if (changing && (!this._id || this._id.toString() !== localStorage.getItem('SongCheat.App.LastLoadedId'))) {
+      if (changing && (!this._id || this._id !== localStorage.getItem('SongCheat.App.LastLoadedId'))) {
         console.warn(`Resetting displayedUnits since ID ${this._id} <> ${localStorage.getItem('SongCheat.App.LastLoadedId')}`)
         let unitIds = []
         if (songcheat.structure) for (let unit of songcheat.structure) unitIds.push(unit.id)
@@ -224,8 +222,8 @@ class App extends Component {
   async save (quiet, source) {
     if (!this.props.authed()) throw new Error('Cannot save songcheat: not logged in')
 
+    // owner_id and created/last_modified are set by the API (from the Auth0 token)
     let document = {
-      owner_id: this.stitchClient.authedId(),
       source: source || this.state.source,
       artist: this.state.songcheat ? this.state.songcheat.artist : null,
       year: this.state.songcheat ? this.state.songcheat.year : null,
@@ -234,34 +232,24 @@ class App extends Component {
     }
 
     // if currently edited songcheat is owned by someone else, create a fork
-    if (this.owner_id && document.owner_id !== this.owner_id) {
-      this.owner_id = document.owner_id
+    if (this.owner_id && this.props.userSub !== this.owner_id) {
+      this.owner_id = this.props.userSub
       document.forked_songcheat_id = this._id
       this._id = null
     }
 
     try {
       if (this._id) {
-        let update = { '$set': document }
-        // TODO: document.last_modified = new Date() ... does not work anymore
-        // after one hour of googling, I could not find how to pass a Date
-        // I therefore used the $currentDate operator which fits my need
-        if (!quiet) update['$currentDate'] = { last_modified: { '$type': 'date' } }
-        let updated = await this.songcheats.updateOne({ '_id': this._id }, update)
-        console.warn(`Updated ${updated.matchedCount} document`)
-        if (updated.matchedCount === 0) throw new Error(`ID ${this._id} not found`)
+        await this.api.updateSongcheat(this._id, document, quiet)
+        console.warn(`Updated document with _id ${this._id}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat saved', detail: `Sucessfully saved songcheat ${this.defaultFilename()}` })
       } else {
-        // TODO: document.last_modified = new Date() ... does not work anymore
-        // I have to set them with updateOne after the insert
-        // document.created = new Date()
-        // document.last_modified = new Date()
-        let inserted = await this.songcheats.insertOne(document)
-        await this.songcheats.updateOne({ '_id': inserted.insertedId }, { '$currentDate': { created: { '$type': 'date' }, last_modified: { '$type': 'date' } }})
-        console.warn(`Inserted document with _id ${inserted.insertedId}`)
+        let inserted = await this.api.createSongcheat(document)
+        console.warn(`Inserted document with _id ${inserted._id}`)
         this.growl.show({ severity: 'success', summary: 'SongCheat created', detail: `Sucessfully created songcheat ${this.defaultFilename()}` })
-        this.props.history.replace('/' + inserted.insertedId)
-        this._id = inserted.insertedId
+        this.props.history.replace('/' + inserted._id)
+        this._id = inserted._id
+        this.owner_id = inserted.owner_id
         localStorage.setItem('SongCheat.App.LastLoadedId', this._id)
       }
     } catch (e) {

@@ -15,12 +15,11 @@ import Select from 'react-select'
 
 // 3rd party packages
 import timeago from 'time-ago'
-import { BSON } from 'mongodb-stitch'
 import { Mutex } from 'async-mutex'
 import { diffChars } from 'diff'
 
 // css
-import './Browser.css'
+import './Browser.scss'
 import 'primereact/resources/primereact.min.css'
 import 'primereact/resources/themes/omega/theme.css'
 import 'font-awesome/css/font-awesome.css'
@@ -30,9 +29,7 @@ export default class Browser extends Component {
 
   constructor (props) {
     super(props)
-    this.stitchClient = this.props.stitchClient
-    this.songcheats = this.props.songcheats
-    this.ratings = this.props.ratings
+    this.api = this.props.api
     this.mutex = new Mutex()
     this.loaded = null
 
@@ -59,44 +56,30 @@ export default class Browser extends Component {
   }
 
   async load () {
-    if (this.stitchClient.isAuthenticated()) {
-      let search = this.state.settings.get('Search.search')
-      let mode = this.props.authed() ? this.state.settings.get('Search.mode') : 'all'
-      let favorite = this.props.authed() ? this.state.settings.get('Search.favorite') : false
-      let nofork = this.props.authed() ? this.state.settings.get('Search.nofork') : false
-      let sortby = this.props.authed() ? this.state.settings.get('Search.sortby') : 'type'
-      let what = `${mode.toLowerCase()} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
-      if (this.loaded === this.state.settings) console.warn(`Already loaded ${what}`)
-      else {
-        this.setState({ data: null })
-        this.loaded = this.state.settings
-        console.log(`Listing ${what}`)
-        // I keep getting "unknown operator $search", so using a simple OR regexp search
-        // let text = { $search: search }
-        let regex = BSON.BSONRegExp('.*' + search + '.*', 'i')
-        let filter = {
-          $and: [
-            { $or: [ { artist: { $regex: regex } }, { title: { $regex: regex } }, { type: { $regex: regex } }, { source: { $regex: regex } } ]} // matches search
-          ]
-        }
-        if (mode === 'mine') filter.owner_id = this.stitchClient.authedId()
-        if (mode === 'other') filter.owner_id = { $ne: this.stitchClient.authedId()}
-        if (nofork) filter.forked_songcheat_id = { $exists: false }
-        filter.type = { $ne: 'Hidden' }
-        let sort = { created: -1 }
-        if (sortby === 'type') sort = { type: 1, artist: 1, year: 1}
-        if (sortby === 'artist') sort = { artist: 1, type: 1, year: 1}
-        let data = await this.songcheats.find(filter).sort(sort).execute()
+    let search = this.state.settings.get('Search.search')
+    let mode = this.props.authed() ? this.state.settings.get('Search.mode') : 'all'
+    let favorite = this.props.authed() ? this.state.settings.get('Search.favorite') : false
+    let nofork = this.props.authed() ? this.state.settings.get('Search.nofork') : false
+    let sortby = this.props.authed() ? this.state.settings.get('Search.sortby') : 'type'
+    let what = `${mode.toLowerCase()} ${favorite ? 'favorite documents' : 'documents'} matching "${search}"`
+    if (this.loaded === this.state.settings) { console.warn(`Already loaded ${what}`); return }
 
-        // get favorite songcheats for this user by songcheat_id
-        let ratings = await this.ratings.find({ user_id: this.stitchClient.authedId() }).execute()
-        let favorites = new window.Map()
-        for (let rating of ratings) if (rating.favorite) favorites.set(rating.songcheat_id.toString(), true)
-        favorites = Map(favorites)
-        console.warn(`Done listing ${what}`)
-        this.setState({ favorites, data: this.groupByCategory(data, favorite ? favorites : null) })
-      }
+    this.setState({ data: null })
+    this.loaded = this.state.settings
+    console.log(`Listing ${what}`)
+
+    // the API builds the regex / mode / nofork filter and the sort server-side
+    let data = await this.api.listSongcheats({ search, mode, nofork, sortby })
+
+    // get favorite songcheats for this user by songcheat_id (auth required)
+    let favorites = new window.Map()
+    if (this.props.authed()) {
+      let ratings = await this.api.listRatings()
+      for (let rating of ratings) if (rating.favorite) favorites.set(rating.songcheat_id, true)
     }
+    favorites = Map(favorites)
+    console.warn(`Done listing ${what}`)
+    this.setState({ favorites, data: this.groupByCategory(data, favorite ? favorites : null) })
   }
 
   async componentDidMount () {
@@ -118,14 +101,14 @@ export default class Browser extends Component {
 
     // for each fork owned by me, find original and flag it
     for (let item of data) {
-      if (item.forked_songcheat_id && item.owner_id === this.stitchClient.authedId()) {
-        for (let original_item of data) if (original_item._id.equals(item.forked_songcheat_id)) original_item.forked_by_me = true
+      if (item.forked_songcheat_id && item.owner_id === this.props.userSub) {
+        for (let original_item of data) if (original_item._id === item.forked_songcheat_id) original_item.forked_by_me = true
       }
     }
 
     // group by category, keeping only given item ids if any and listing distinct artists on the way
     for (let item of data) {
-      if (keep && !keep.get(item._id.toString())) groupedData.length--
+      if (keep && !keep.get(item._id)) groupedData.length--
       else {
         let category = timeago.ago(item.created).replace(/[0-9]+ minutes/, 'minutes').replace(/[0-9]+ hours/, 'hours').replace(/[0-9]+ days/, 'days').replace(/[0-9]+ months/, 'months').replace(/[0-9]+ years/, 'years')
         if (sortby === 'type') category = (item.type || '(unknown type)')
@@ -151,24 +134,18 @@ export default class Browser extends Component {
   }
 
   async toggleFavorite (songcheat_id) {
-    let favorite = !this.state.favorites.get(songcheat_id.toString())
+    let favorite = !this.state.favorites.get(songcheat_id)
     console.warn('Toggle songcheat ' + songcheat_id + ' to favorite = ' + favorite)
-    this.setState({ favorites: this.state.favorites.set(songcheat_id.toString(), favorite) })
+    this.setState({ favorites: this.state.favorites.set(songcheat_id, favorite) })
     if (!this.props.authed()) throw new Error('Cannot save favorite: not logged in')
 
-    let document = {
-      user_id: this.stitchClient.authedId(),
-      songcheat_id: songcheat_id,
-      favorite: favorite
-    }
-
-    return await this.ratings.updateOne({ 'user_id': this.stitchClient.authedId(), 'songcheat_id': songcheat_id }, { '$set': document }, { upsert: true })
+    return this.api.setFavorite(songcheat_id, favorite)
   }
 
   async forkDiff (songcheat_id, forked_songcheat_id) {
     this.setState({indiff: true})
-    let original = await this.songcheats.findOne({ '_id': forked_songcheat_id })
-    let fork = await this.songcheats.findOne({ '_id': songcheat_id })
+    let original = await this.api.getSongcheat(forked_songcheat_id)
+    let fork = await this.api.getSongcheat(songcheat_id)
     let diff = diffChars(original.source, fork.source)
 
     // green for additions, red for deletions
@@ -187,7 +164,7 @@ export default class Browser extends Component {
           <span className='title'>{item.title} </span>
           <span className='info'><i className='fa fa-edit' /> {timeago.ago(item.last_modified)}</span>
         </Link>
-        {this.props.authed() && <i className={'fa fa-star ' + (this.state.favorites.get(item._id.toString()) ? 'favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
+        {this.props.authed() && <i className={'fa fa-star ' + (this.state.favorites.get(item._id) ? 'favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
         {item.forked_songcheat_id && <i className='fa fa-code-fork' onClick={() => this.forkDiff(item._id, item.forked_songcheat_id)} />}
       </div>
     )

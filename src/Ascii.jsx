@@ -9,7 +9,7 @@ import {Checkbox} from 'primereact/components/checkbox/Checkbox'
 import Select from 'react-select'
 
 // css
-import './Ascii.css'
+import './Ascii.scss'
 import 'react-select/dist/react-select.css'
 
 class Ascii extends Component {

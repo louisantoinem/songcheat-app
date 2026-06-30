@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import ReactPlayer from 'react-player'
 
-import './General.css'
+import './General.scss'
 
 class General extends Component {
 

@@ -7,7 +7,7 @@ import {Utils, ChordGen} from 'songcheat-core'
 import {Checkbox} from 'primereact/components/checkbox/Checkbox'
 
 // css
-import './Chords.css'
+import './Chords.scss'
 
 class Chords extends Component {
 

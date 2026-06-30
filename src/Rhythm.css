@@ -1,0 +1,7 @@
+.Rhythm {
+  padding: 0 10px; }
+  .Rhythm > div.Options {
+    float: right;
+    margin: 0 20px; }
+    .Rhythm > div.Options label {
+      margin-left: 5px; }

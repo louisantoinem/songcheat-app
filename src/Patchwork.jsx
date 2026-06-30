@@ -10,7 +10,7 @@ import SplitPane from 'react-split-pane'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
 
 // 3rd party css
-import './SplitPane.css'
+import './SplitPane.scss'
 import 'react-tabs/style/react-tabs.css'
 
 class Patchwork extends Component {

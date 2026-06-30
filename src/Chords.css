@@ -1,0 +1,19 @@
+.Chords {
+  padding: 0 10px; }
+  .Chords > div:not(.Options) {
+    display: inline-block;
+    vertical-align: top; }
+    .Chords > div:not(.Options) img {
+      display: block;
+      width: 175px; }
+    .Chords > div:not(.Options) p {
+      font-size: 0.85em;
+      text-align: center;
+      margin-top: 0;
+      width: 125px;
+      margin: 0 auto; }
+  .Chords > div.Options {
+    float: right;
+    margin: 0 20px; }
+    .Chords > div.Options label {
+      margin-left: 5px; }

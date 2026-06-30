@@ -11,7 +11,7 @@ import ReactResizeDetector from 'react-resize-detector'
 import Player from './Player'
 
 // css
-import './Rhythm.css'
+import './Rhythm.scss'
 
 /* import vextab from 'vextab'
 let VexTab = vextab.VexTab

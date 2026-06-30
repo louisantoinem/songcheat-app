@@ -1,0 +1,43 @@
+30 juin 2026 de 10:18 à 12:14
+
+BaaS Stitch a été discontinué: on va migrer vers une API rest custom !
+
+Github : 
+- new repo songcheat-api
+
+Auth0:
+- créé API "SongCheat API" identifier https://songcheat/api/v1 
+  => AUTH0_AUDIENCE pour l'API
+- créé Application SPA "SongCheat"
+  > Allowed Callback URLS / Logout URLs / Web Origins = http://localhost:3000 + https://songcheat.com 
+  > dans onglet "API Access" fait un "Grant Access" sur "SongCheat API"
+  => Client ID pour le front
+- activé connexions sociales Google et Facebook et cochées pour application SongCheat
+
+songcheat-api:
+- créé par Claude API Express.js sur base de hexxitapi
+- infos de connexion Auth0 et MongoDB dans .env et non hardcodées dans index.js
+
+songcheat-app:
+- migré de Stitch vers songcheat-api + auth0 (on retrouve dans .env les même infos que dans hexxy/auth_config.json)
+- montée de react-scripts 1.0.17 → 5 pour fonctionner avec node 22
+
+songcheat mongodb
+- migré mon ancien owner_id Stitch 5a886f43b8b998366194edbd vers mon UserID Auth0 google-oauth2|104396035954388714521
+
+┌──────────────────────────┬───────────┬─────────┐
+│     Ancien id Stitch     │ Documents │ Favoris │
+├──────────────────────────┼───────────┼─────────┤
+│ 5a886f43b8b998366194edbd │ 85        │ 40      │
+├──────────────────────────┼───────────┼─────────┤
+│ 5c4a37476fa00bf8014caa39 │ 7         │ 3       │
+└──────────────────────────┴───────────┴─────────┘
+
+Bilan: ça fonctionne en local.
+
+TODO :
+- migrer ancien owner_id Stitch de Gerome 5c4a37476fa00bf8014caa39 vers son UserID Auth0
+- domaine songcheat.com pointe sur budbox
+- installer songcheat-api sur budbox comme hexxitapi, accessible via https://songcheat.com/api/v1
+- faire un deploy de songcheat-app sur budbox comme hexxy
+

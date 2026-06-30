@@ -2,45 +2,25 @@ import React, {Component} from 'react'
 import { Link } from 'react-router-dom'
 
 // css
-import './Auth.css'
+import './Auth.scss'
 
 export default class Auth extends Component {
-  constructor (props) {
-    super(props)
-    this.state = {
-      userData: null
-    }
-    this.stitchClient = props.stitchClient
-  }
-
-  componentDidMount () {
-    if (this.stitchClient.isAuthenticated()) {
-      this.stitchClient.userProfile().then(userData => {
-        this.setState({userData: userData.data})
-      })
-    }
-  }
-
   render () {
     let authed = this.props.authed()
-    let logout = () => this.stitchClient.logout().then(() => {
-      this.props.history.push('/')
-      window.location.reload()
-    })
+    let user = this.props.user
+    let logout = () => this.props.logout({ logoutParams: { returnTo: window.location.origin } })
+    let login = (connection) => this.props.loginWithRedirect({ authorizationParams: { connection } })
     return (<div className='Auth'>
       { this.props.match.params._id && <div className='home-link'><Link to={'/'}>&#8249; Back to list</Link></div> }
       { authed && <div className='login-header'>
-        { this.state.userData && this.state.userData.picture ? <img alt='profile' src={this.state.userData.picture} className='profile-pic' /> : null }
+        { user && user.picture ? <img alt='profile' src={user.picture} className='profile-pic' /> : null }
         <span className='login-text'>
-          <span className='username'>{ this.state.userData && this.state.userData.name ? this.state.userData.name : 'Guest' }</span>
+          <span className='username'>{ user && user.name ? user.name : 'Guest' }</span>
           <a className='logout' onClick={logout}>(sign out)</a>
         </span>
       </div> }
       { !authed && <div className='login-links-panel'>
-        <div onClick={() => {
-          this.props.history.push('/')
-          this.stitchClient.authenticate('google')
-        }} className='signin-button'>
+        <div onClick={() => login('google-oauth2')} className='signin-button'>
           <span className='signin-button-text'>Sign in with &nbsp;</span>
           <svg version='1.1' xmlns='http://www.w3.org/2000/svg' width='18px' height='18px' viewBox='0 0 48 48'>
             <g>
@@ -52,10 +32,7 @@ export default class Auth extends Component {
             </g>
           </svg>
         </div>
-        <div onClick={() => {
-          this.props.history.push('/')
-          this.stitchClient.authenticate('facebook')
-        }} className='signin-button'>
+        <div onClick={() => login('facebook')} className='signin-button'>
           <span className='signin-button-text'>Sign in with &nbsp;</span>
           <div className='facebook-signin-logo' />
         </div>

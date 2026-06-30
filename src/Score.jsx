@@ -13,7 +13,7 @@ import ReactResizeDetector from 'react-resize-detector'
 import Select from 'react-select'
 
 // css
-import './Score.css'
+import './Score.scss'
 import 'react-select/dist/react-select.css'
 
 /* import vextab from 'vextab'
