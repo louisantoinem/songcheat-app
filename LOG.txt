@@ -24,17 +24,6 @@ songcheat-app:
 - migré de Stitch vers songcheat-api + auth0 (on retrouve dans .env les même infos que dans hexxy/auth_config.json)
 - montée de react-scripts 1.0.17 → 5 pour fonctionner avec node 22
 
-songcheat mongodb
-- migré mon ancien owner_id Stitch 5a886f43b8b998366194edbd vers mon UserID Auth0 google-oauth2|104396035954388714521
-
-┌──────────────────────────┬───────────┬─────────┐
-│     Ancien id Stitch     │ Documents │ Favoris │
-├──────────────────────────┼───────────┼─────────┤
-│ 5a886f43b8b998366194edbd │ 85        │ 40      │
-├──────────────────────────┼───────────┼─────────┤
-│ 5c4a37476fa00bf8014caa39 │ 7         │ 3       │
-└──────────────────────────┴───────────┴─────────┘
-
 Bilan: ça fonctionne en local !
 
 > 12:45 - 14:05
@@ -54,5 +43,18 @@ Déploiement:
     journalctl -u songcheat-api -f
 - créé .htaccess dans budbox:/data/songcheat pour accès direct aux songcheat (existait aussi pour hexxit)
 
-WIP: 
-Demandé à Gerome de se connecter avec Google => migrer ancien owner_id Stitch de Gerome 5c4a37476fa00bf8014caa39 vers son UserID Auth0
+Mongodb:
+- migré mon ancien owner_id Stitch 5a886f43b8b998366194edbd vers mon UserID Auth0 google-oauth2|104396035954388714521
+- migré ancien owner_id Stitch 5c4a37476fa00bf8014caa39 vers monUserID Auth0 de Gérôme google-oauth2|116013636972078758808
+
+┌──────────────────────────┬───────────┬─────────┐
+│     Ancien id Stitch     │ Documents │ Favoris │
+├──────────────────────────┼───────────┼─────────┤
+│ 5a886f43b8b998366194edbd │ 85        │ 40      │
+├──────────────────────────┼───────────┼─────────┤
+│ 5c4a37476fa00bf8014caa39 │ 7         │ 3       │
+└──────────────────────────┴───────────┴─────────┘
+
+> 16:45 - 17:45
+
+Modernisé UI Browser

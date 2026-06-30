@@ -3,16 +3,6 @@ import React, { Component } from 'react'
 import { Link, Route } from 'react-router-dom'
 import { OrderedMap, Map } from 'immutable'
 
-// prime react components
-import { Button } from 'primereact/components/button/Button'
-import { InputText } from 'primereact/components/inputtext/InputText'
-import { Toolbar } from 'primereact/components/toolbar/Toolbar'
-import { Checkbox } from 'primereact/components/checkbox/Checkbox'
-import { ProgressSpinner } from 'primereact/components/progressspinner/ProgressSpinner'
-
-// 3rd party components
-import Select from 'react-select'
-
 // 3rd party packages
 import timeago from 'time-ago'
 import { Mutex } from 'async-mutex'
@@ -20,10 +10,7 @@ import { diffChars } from 'diff'
 
 // css
 import './Browser.scss'
-import 'primereact/resources/primereact.min.css'
-import 'primereact/resources/themes/omega/theme.css'
 import 'font-awesome/css/font-awesome.css'
-import 'react-select/dist/react-select.css'
 
 export default class Browser extends Component {
 
@@ -48,9 +35,13 @@ export default class Browser extends Component {
     // if new settings have been added since they were stored, use their default value
     for (let k in defaultSettings) if (typeof settings[k] === 'undefined') settings[k] = defaultSettings[k]
 
+    const storedImageCache = localStorage.getItem('SongCheat.ArtistImages')
+    this.artistImageCache = storedImageCache ? JSON.parse(storedImageCache) : {}
+    this.searchRef = React.createRef()
     this.state = {
       favorites: Map(),
       data: null,
+      artistImages: Map(),
       settings: Map(settings)
     }
   }
@@ -79,11 +70,46 @@ export default class Browser extends Component {
     }
     favorites = Map(favorites)
     console.warn(`Done listing ${what}`)
+    const artists = [...new Set(data.map(item => item.artist).filter(Boolean))]
+    this.fetchArtistImages(artists)
     this.setState({ favorites, data: this.groupByCategory(data, favorite ? favorites : null) })
+  }
+
+  async fetchArtistImages (artists) {
+    const toFetch = artists.filter(a => !(a in this.artistImageCache))
+    await Promise.all(toFetch.map(async artist => {
+      try {
+        const res = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(artist)}`)
+        const json = res.ok ? await res.json() : {}
+        this.artistImageCache[artist] = json.thumbnail?.source || null
+        localStorage.setItem('SongCheat.ArtistImages', JSON.stringify(this.artistImageCache))
+      } catch (e) {
+        this.artistImageCache[artist] = null
+      }
+    }))
+    const updates = {}
+    for (const artist of artists) if (this.artistImageCache[artist]) updates[artist] = this.artistImageCache[artist]
+    if (Object.keys(updates).length > 0) this.setState(prev => ({ artistImages: prev.artistImages.merge(updates) }))
   }
 
   async componentDidMount () {
     this.mutex.runExclusive(() => this.load())
+    document.addEventListener('keydown', this.handleKeyDown)
+  }
+
+  componentWillUnmount () {
+    document.removeEventListener('keydown', this.handleKeyDown)
+  }
+
+  handleKeyDown = (e) => {
+    const tag = document.activeElement.tagName
+    if (e.key === '/' && tag !== 'INPUT' && tag !== 'TEXTAREA') {
+      e.preventDefault()
+      this.searchRef.current?.focus()
+    }
+    if (e.key === 'Escape' && document.activeElement === this.searchRef.current) {
+      this.searchRef.current?.blur()
+    }
   }
 
   async componentDidUpdate (prevProps, prevState) {
@@ -153,31 +179,62 @@ export default class Browser extends Component {
     this.setState({diff})
   }
 
-  itemTemplate (item) {
+  avatarInitials (artist) {
+    if (!artist) return '?'
+    return artist.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
+  }
+
+  avatarColor (artist) {
+    if (!artist) return '#999'
+    let hash = 0
+    for (let c of artist) hash = (hash * 31 + c.charCodeAt(0)) & 0xffffffff
+    return `hsl(${Math.abs(hash) % 360}, 52%, 50%)`
+  }
+
+  itemTemplate (item, index = 0) {
     if (!item) return
     let created_days = Math.round(Math.abs(((new Date()).getTime() - item.created.getTime()) / (24 * 60 * 60 * 1000)))
     let last_modified_days = Math.round(Math.abs(((new Date()).getTime() - item.last_modified.getTime()) / (24 * 60 * 60 * 1000)))
+    const recencyPct = Math.round((1 - last_modified_days / 30) * 100)
+    const isRecent = last_modified_days <= 30
+    const classNames = ['item', created_days <= 30 && 'created', isRecent && 'last_modified', item.forked_by_me && 'forked_by_me'].filter(Boolean).join(' ')
     return (
-      <div title={'Created ' + timeago.ago(item.created) + ' / Modified ' + timeago.ago(item.last_modified)} className={'item' + (created_days <= 30 ? ' created' : '') + (last_modified_days <= 30 ? ' last_modified' : '') + (item.forked_by_me ? ' forked_by_me' : '')} key={item._id}>
-        <Link to={'/' + item._id}>
-          <span className='artist'>{item.artist + (item.year ? ' (' + item.year + ')' : '')}</span>
-          <span className='title'>{item.title} </span>
-          <span className='info'><i className='fa fa-edit' /> {timeago.ago(item.last_modified)}</span>
-        </Link>
-        {this.props.authed() && <i className={'fa fa-star ' + (this.state.favorites.get(item._id) ? 'favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
-        {item.forked_songcheat_id && <i className='fa fa-code-fork' onClick={() => this.forkDiff(item._id, item.forked_songcheat_id)} />}
+      <div title={'Created ' + timeago.ago(item.created) + ' / Modified ' + timeago.ago(item.last_modified)} className={classNames} style={{ animationDelay: `${Math.min(index * 30, 400)}ms` }} key={item._id}>
+        <div className='item-avatar' style={this.state.artistImages.get(item.artist) ? {} : { background: this.avatarColor(item.artist) }}>
+          {this.state.artistImages.get(item.artist)
+            ? <img src={this.state.artistImages.get(item.artist)} alt={item.artist} />
+            : this.avatarInitials(item.artist)
+          }
+        </div>
+        <div className='item-body'>
+          {this.props.authed() && <i className={'fa fa-star item-star' + (this.state.favorites.get(item._id) ? ' favorite' : '')} onClick={() => this.toggleFavorite(item._id)} />}
+          {item.forked_songcheat_id && <i className='fa fa-code-fork item-fork' onClick={() => this.forkDiff(item._id, item.forked_songcheat_id)} />}
+          <Link to={'/' + item._id}>
+            <span className='artist'>{item.artist}{item.year && <span className='year'>{item.year}</span>}</span>
+            <span className='title'>{item.title}</span>
+            <span className='info'><i className='fa fa-clock-o' /> {timeago.ago(item.last_modified)}</span>
+          </Link>
+        </div>
+        {isRecent && <div className='recency-bar' style={{ width: `${recencyPct}%` }} />}
       </div>
     )
   }
 
   items (data) {
     let items = []
+    let cardIndex = 0
     for (let entry of data) {
-      items.push(<div className='items' key={entry[0]}>
-        <h3>{entry[0]}</h3>
-        <h4>{entry[1].items.length} {entry[1].items.length > 1 ? 'titles' : 'title'} / {entry[1].artists.size} {entry[1].artists.size > 1 ? 'artists' : 'artist'}</h4>
-        { entry[1].items.map(item => { return this.itemTemplate(item) }) }
-      </div>)
+      items.push(
+        <div className='category' key={entry[0]}>
+          <div className='category-header'>
+            <h3>{entry[0]}</h3>
+            <span className='category-meta'>{entry[1].items.length} {entry[1].items.length > 1 ? 'titles' : 'title'} · {entry[1].artists.size} {entry[1].artists.size > 1 ? 'artists' : 'artist'}</span>
+          </div>
+          <div className='items-grid'>
+            {entry[1].items.map(item => this.itemTemplate(item, cardIndex++))}
+          </div>
+        </div>
+      )
     }
     return items
   }
@@ -203,60 +260,102 @@ export default class Browser extends Component {
         </div>}
       </div>}
 
-      <Toolbar>
-        <div className='p-toolbar-group-left'>
+      <div className='filter-bar'>
+        <Route render={({ history }) => (
+          <button className='btn-create' onClick={() => history.push('/new')}>
+            <i className='fa fa-plus' /> Create
+          </button>
+        )} />
 
-          <div className='optionsRow' style={{marginTop: '3px'}}>
-            <Route render={({ history }) => <Button label='Create' icon='fa fa-plus' onClick={() => { history.push('/new') }} />} />
-          </div>
-
-          <div className='optionsRow' style={{marginTop: '3px'}}>
-            <i className='fa fa-search' style={{marginRight: '.25em'}} />
-            <InputText onChange={(e) => this.updateSetting('Search.search', e.target.value)} value={this.state.settings.get('Search.search')} placeholder='Search...' style={{width: '300px'}} />
-          </div>
-
-          { this.props.authed() && <div className='optionsRow'>
-            <Select
-              value={this.state.settings.get('Search.mode')}
-              onChange={(selectedOption) => { if (selectedOption) this.updateSetting('Search.mode', selectedOption.value) }}
-              options={[
-                { value: 'all', label: 'All' },
-                { value: 'mine', label: 'Mine' },
-                { value: 'other', label: "Other's" }
-              ]}
-            />
-          </div>}
-
-          { this.props.authed() && <div className='optionsRow'>
-            <Select
-              value={this.state.settings.get('Search.sortby')}
-              onChange={(selectedOption) => { if (selectedOption) this.updateSetting('Search.sortby', selectedOption.value) }}
-              options={[
-                { value: 'type', label: 'By type' },
-                { value: 'created', label: 'By creation date' },
-                { value: 'artist', label: 'By artist' }
-              ]}
-            />
-          </div>}
-
-          <div className='optionsRow' style={{marginTop: '7px'}}>
-            { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.favorite', e.checked)} checked={this.state.settings.get('Search.favorite')} style={{marginLeft: '.5em'}} /> }
-            { this.props.authed() && <label>Favorites only</label> }
-            { this.props.authed() && <Checkbox onChange={(e) => this.updateSetting('Search.nofork', e.checked)} checked={this.state.settings.get('Search.nofork')} style={{marginLeft: '.5em'}} /> }
-            { this.props.authed() && <label>Ignore forks</label> }
-          </div>
-
+        <div className='search-input-wrap'>
+          <i className='fa fa-search' />
+          <input
+            ref={this.searchRef}
+            type='text'
+            placeholder='Search... ( / )'
+            value={this.state.settings.get('Search.search')}
+            onChange={(e) => this.updateSetting('Search.search', e.target.value)}
+          />
         </div>
-        <div className='p-toolbar-group-right' />
-      </Toolbar>
 
-      { !this.state.data && <div className='SpinnerContainer'><ProgressSpinner style={{width: '150px', height: '150px'}} strokeWidth='8' fill='#EEEEEE' animationDuration='1s' /></div> }
-      { this.state.data &&
+        {this.props.authed() && (
+          <div className='toggle-group'>
+            {[['all', 'All'], ['mine', 'Mine'], ['other', "Other's"]].map(([val, label]) => (
+              <button key={val} className={'toggle-btn' + (this.state.settings.get('Search.mode') === val ? ' active' : '')} onClick={() => this.updateSetting('Search.mode', val)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {this.props.authed() && (
+          <div className='toggle-group'>
+            {[['type', 'By type'], ['created', 'By date'], ['artist', 'By artist']].map(([val, label]) => (
+              <button key={val} className={'toggle-btn' + (this.state.settings.get('Search.sortby') === val ? ' active' : '')} onClick={() => this.updateSetting('Search.sortby', val)}>
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {this.props.authed() && (
+          <div className='chip-group'>
+            <button className={'chip' + (this.state.settings.get('Search.favorite') ? ' active' : '')} onClick={() => this.updateSetting('Search.favorite', !this.state.settings.get('Search.favorite'))}>
+              <i className='fa fa-star' /> Favorites
+            </button>
+            <button className={'chip' + (this.state.settings.get('Search.nofork') ? ' active' : '')} onClick={() => this.updateSetting('Search.nofork', !this.state.settings.get('Search.nofork'))}>
+              <i className='fa fa-code-fork' /> No forks
+            </button>
+          </div>
+        )}
+      </div>
+
+      {!this.state.data && (
+        <div className='skeleton-grid'>
+          {Array.from({ length: 12 }).map((_, i) => (
+            <div className='skeleton-card' key={i}>
+              <div className='sk-avatar' />
+              <div className='sk-body'>
+                <div className='sk-line sk-artist' />
+                <div className='sk-line sk-title' />
+                <div className='sk-line sk-info' />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {this.state.data && (
         <div>
-          <h2>{this.state.data.length} {this.loaded.get('Search.favorite') ? ' favorite ' : ''} songcheats found {this.loaded.get('Search.search') ? 'matching "' + this.loaded.get('Search.search') + '"' : ''}</h2>
-          { this.items(this.state.data.dataByCategory) }
+          <div className='results-summary'>
+            <span className='results-count'>{this.state.data.length}</span>
+            <span className='results-label'>{this.loaded.get('Search.favorite') ? ' favorite' : ''} songcheat{this.state.data.length !== 1 ? 's' : ''}</span>
+            {this.loaded.get('Search.search') && (
+              <>
+                <span className='results-query'>matching "{this.loaded.get('Search.search')}"</span>
+                <button className='results-clear' onClick={() => this.updateSetting('Search.search', '')} title='Clear search'>
+                  <i className='fa fa-times' />
+                </button>
+              </>
+            )}
+          </div>
+
+          {this.state.data.length === 0
+            ? (
+              <div className='empty-state'>
+                <i className='fa fa-music' />
+                <p>No songcheats found</p>
+                {this.loaded.get('Search.search') && (
+                  <button onClick={() => this.updateSetting('Search.search', '')}>
+                    Clear search
+                  </button>
+                )}
+              </div>
+            )
+            : this.items(this.state.data.dataByCategory)
+          }
         </div>
-      }
+      )}
     </div>
     )
   }
