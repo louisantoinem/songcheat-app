@@ -27,4 +27,20 @@
       margin-left: 5px;
     }
   }
+
+  @media (max-width: 600px) {
+    > div:not(.Options) {
+      width: 50%;
+      box-sizing: border-box;
+      padding: 4px;
+
+      img {
+        width: 100%;
+      }
+
+      p {
+        width: 100%;
+      }
+    }
+  }
 }

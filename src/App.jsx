@@ -37,7 +37,7 @@ import 'font-awesome/css/font-awesome.css'
 
 class App extends Component {
 
-  constructor (props) {
+  constructor(props) {
     super(props)
     this.parser = new Parser()
     this.compiler = new Compiler(0)
@@ -56,22 +56,7 @@ class App extends Component {
       true: layoutEdit ? Layout.fromString(layoutEdit) : this.defaultLayout(true)
     }
 
-    let defaultSettings = {
-      'Chords.showInline': false,
-      'Rhythm.showInline': false,
-      'Ascii.split': 0,
-      'Ascii.maxConsecutiveSpaces': 1,
-      'Ascii.fontSize': 1.0,
-      'Ascii.columnCount': 2,
-      'Score.staveMode': '',
-      'Score.separateUnits': false,
-      'Score.displayedUnits': [],
-      'Score.showLyrics': true,
-      'Score.showStrokes': false,
-      'Score.showAccents': false,
-      'Score.barsPerLine': 4,
-      'Score.rendering': 'canvas'
-    }
+    let defaultSettings = this.defaultSettings()
 
     // load stored settings if any
     let settings = localStorage.getItem('SongCheat.App.Settings')
@@ -96,11 +81,49 @@ class App extends Component {
     }
   }
 
-  _key (editMode) {
+  _key(editMode) {
     return 'SongCheat.App.Layout.' + (editMode ? 'Edit' : 'View')
   }
 
-  onDrop (acceptedFiles, rejectedFiles) {
+  defaultSettings() {
+    return {
+      'Chords.showInline': false,
+      'Rhythm.showInline': false,
+      'Ascii.split': 0,
+      'Ascii.maxConsecutiveSpaces': 1,
+      'Ascii.fontSize': 1.0,
+      'Ascii.columnCount': 2,
+      'Score.staveMode': '',
+      'Score.separateUnits': false,
+      'Score.displayedUnits': [],
+      'Score.showLyrics': true,
+      'Score.showStrokes': false,
+      'Score.showAccents': false,
+      'Score.barsPerLine': 4,
+      'Score.rendering': 'canvas'
+    }
+  }
+
+  resetSettings() {
+    let settings = Map(this.defaultSettings())
+
+    // select all units
+    if (this.state.songcheat && this.state.songcheat.structure) {
+      const unitIds = this.state.songcheat.structure.map(unit => unit.id)
+      settings = settings.set('Score.displayedUnits', unitIds)
+    }
+
+    // force column count and bars per line to 1 on mobile
+    if (window.innerWidth <= 600) {
+      settings = settings.set('Ascii.columnCount', 1)
+      settings = settings.set('Score.barsPerLine', 1)
+    }
+
+    this.setState({ settings })
+    localStorage.removeItem('SongCheat.App.Settings')
+  }
+
+  onDrop(acceptedFiles, rejectedFiles) {
     acceptedFiles.forEach(file => {
       const reader = new FileReader()
       reader.onload = () => this.songcheat(reader.result, file.name, true)
@@ -110,7 +133,7 @@ class App extends Component {
     })
   }
 
-  componentWillMount () {
+  componentWillMount() {
     if (!this._id) this.songcheat(this.state.source, null, true)
 
     // register prompt plugin
@@ -139,7 +162,23 @@ class App extends Component {
     })
   }
 
-  componentDidMount () {
+  componentDidMount() {
+
+    // on mobile, force single-panel layout (only if saved layout has multiple panels) and single-column text and score view
+    if (window.innerWidth <= 600) {
+      let settings = this.state.settings.set('Ascii.columnCount', 1)
+      settings = settings.set('Score.barsPerLine', 1)
+
+      if (!this.state.layout.root.isLeave() || this.state.layout.root.components.length > 4) {
+        localStorage.removeItem(this._key(false))
+        localStorage.removeItem(this._key(true))
+        const mobileLayout = this.defaultLayout(false)
+        this.setState({ layout: mobileLayout, layouts: { ...this.state.layouts, false: mobileLayout }, settings })
+      } else this.setState({ settings })
+
+      localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
+    }
+
     // if a songcheats _id is given in url
     if (this._id) {
       this.api.getSongcheat(this._id).then(document => {
@@ -153,14 +192,14 @@ class App extends Component {
     }
   }
 
-  songcheat (source, filename, changing) {
+  songcheat(source, filename, changing) {
     try {
       // replace composed chars causing some issues in ACE
       source = Utils.replaceComposedChars(source)
       filename = typeof filename === 'undefined' ? this.state.filename : filename
 
       // update current source and filename
-      this.setState({source, filename})
+      this.setState({ source, filename })
       localStorage.setItem('SongCheat.App.Source', source)
       localStorage.setItem('SongCheat.App.Filename', filename || '')
 
@@ -178,17 +217,17 @@ class App extends Component {
         localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
       } else console.log(`Keeping displayedUnits since ID ${this._id} = ${localStorage.getItem('SongCheat.App.LastLoadedId')}`)
 
-      this.setState({songcheat: songcheat, settings: settings, error: null})
+      this.setState({ songcheat: songcheat, settings: settings, error: null })
     } catch (e) {
       // change state.songcheat only when loading a new file, otherwise (i.e. when editing) keep current as is
-      this.setState({songcheat: filename ? null : this.state.songcheat, error: e.toString()})
+      this.setState({ songcheat: filename ? null : this.state.songcheat, error: e.toString() })
       if (!(e instanceof ParserException) && !(e instanceof TokenizerException) && !(e instanceof CompilerException) && !(e instanceof ChordException)) {
         console.error(e)
       }
     }
   }
 
-  onChange (source) {
+  onChange(source) {
     // auto-save source after 2.5s if no more change
     clearTimeout(this.saveTimer)
     this.saveTimer = setTimeout(() => localStorage.setItem('SongCheat.App.Source', source), 2500)
@@ -201,13 +240,13 @@ class App extends Component {
     this.recompileTimer = setTimeout(() => this.songcheat(source), ms)
   }
 
-  async onSave (source, filename, quiet) {
-/*
-    if (!this.state.songcheat) {
-      this.growl.show({ severity: 'warn', summary: 'SongCheat must be fixed', detail: `Please fix all errors before saving your SongCheat` })
-      return
-    }
-*/
+  async onSave(source, filename, quiet) {
+    /*
+        if (!this.state.songcheat) {
+          this.growl.show({ severity: 'warn', summary: 'SongCheat must be fixed', detail: `Please fix all errors before saving your SongCheat` })
+          return
+        }
+    */
     // logged in: insert or update mongodb document
     if (this.props.authed()) {
       this.songcheat(source)
@@ -219,7 +258,7 @@ class App extends Component {
     saveAs(blob, filename)
   }
 
-  async save (quiet, source) {
+  async save(quiet, source) {
     if (!this.props.authed()) throw new Error('Cannot save songcheat: not logged in')
 
     // owner_id and created/last_modified are set by the API (from the Auth0 token)
@@ -258,30 +297,30 @@ class App extends Component {
     }
   }
 
-  force () {
+  force() {
     // this ensures SplitPanes are unmounted and re-rendered with their defaultSize
     this.setState({ clear: true }, () => this.setState({ clear: false }))
   }
 
   // Apply received (loaded) layout as current
-  setLayout (layout) {
-    this.setState({layout}, () => this.force())
+  setLayout(layout) {
+    this.setState({ layout }, () => this.force())
   }
 
   // Update current layout in response to user input
-  updateLayout (layout) {
+  updateLayout(layout) {
     this.setState({ layout })
     localStorage.setItem(this._key(this.state.editMode), layout.stringify())
   }
 
   // Reset current layout to the default for current mode
-  resetLayout () {
-    this.setState({layout: this.defaultLayout(this.state.editMode)}, () => this.force())
+  resetLayout() {
+    this.setState({ layout: this.defaultLayout(this.state.editMode) }, () => this.force())
     localStorage.removeItem(this._key(this.state.editMode))
   }
 
   // Switch mode edit <-> view
-  switchLayout () {
+  switchLayout() {
     let prevMode = this.state.editMode
     let nextMode = !this.state.editMode
     localStorage.setItem('SongCheat.App.Mode', nextMode ? 'edit' : 'view')
@@ -292,12 +331,13 @@ class App extends Component {
   }
 
   // Returns default layout for given mode
-  defaultLayout (editMode) {
-    return new Layout(editMode ? {left: [5], right: [0, 1, 2, 3, 4]} : {left: [0, 1, 2], right: [3, 4], position: 660}) // 660 = embedded video width
+  defaultLayout(editMode) {
+    if (window.innerWidth <= 600) return Layout.fromString('{"root":{"components":[0,1,3,4],"selectedIndex":2}}')
+    return new Layout(editMode ? { left: [5], right: [0, 1, 2, 3, 4] } : { left: [0, 1, 2], right: [3, 4], position: 660 }) // 660 = embedded video width
   }
 
   // Default filename used when saving a new songcheat for the first time
-  defaultFilename () {
+  defaultFilename() {
     let filename = ''
     if (this.state.songcheat && this.state.songcheat.title) {
       filename = this.state.songcheat.title
@@ -307,62 +347,62 @@ class App extends Component {
   }
 
   // Update filename after user saved songcheat
-  updateFilename (filename) {
-    this.setState({filename})
+  updateFilename(filename) {
+    this.setState({ filename })
     localStorage.setItem('SongCheat.App.Filename', filename || '')
   }
 
   // Update settings in response to user input
-  updateSetting (key, value) {
+  updateSetting(key, value) {
     let settings = this.state.settings.set(key, value)
-    this.setState({settings})
+    this.setState({ settings })
     localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
   }
 
-  getUnitOptions () {
+  getUnitOptions() {
     let options = []
-    if (this.state.songcheat && this.state.songcheat.structure) for (let unit of this.state.songcheat.structure) options.push({ value: unit.id, label: unit.name})
+    if (this.state.songcheat && this.state.songcheat.structure) for (let unit of this.state.songcheat.structure) options.push({ value: unit.id, label: unit.name })
     return options
   }
 
-  getDisplayedUnits () {
+  getDisplayedUnits() {
     let units = []
     let displayedUnits = this.state.settings.get('Score.displayedUnits')
     if (this.state.songcheat && this.state.songcheat.structure) for (let unit of this.state.songcheat.structure) if (displayedUnits.indexOf(unit.id) >= 0) units.push(unit)
     return units
   }
 
-  render () {
+  render() {
     // set document title
     if (this.state.songcheat && this.state.songcheat.title) document.title = this.state.songcheat.title + ' - ' + this.state.songcheat.artist + ', ' + this.state.songcheat.year
 
     return (<section className='App'>
 
       <Popup />
-      <Growl style={{top: '90px'}} ref={(el) => { this.growl = el }} />
+      <Growl style={{ top: '90px' }} ref={(el) => { this.growl = el }} />
 
-      <header className='App-header' style={{position: 'relative'}}>
-        <div style={{ position: 'absolute', left: '5px' }}>
+      <header className='App-header'>
+        <div className='header-player'>
           <Player
             onPlay={() => {
               if (this.state.songcheat && this.state.songcheat.offset >= 0) {
                 if (this.videoPlayer) this.videoPlayer.seekTo(this.state.songcheat.offset, 'seconds')
-                this.setState({playing: true})
+                this.setState({ playing: true })
               }
             }}
-            onPause={playing => this.setState({playing})}
-            onStop={() => this.setState({playing: false})}
+            onPause={playing => this.setState({ playing })}
+            onStop={() => this.setState({ playing: false })}
             audioCtx={this.audioCtx}
             rhythm={false}
             songcheat={this.state.songcheat}
             units={this.getDisplayedUnits()} />
         </div>
-        <div style={{ position: 'absolute', right: '5px' }}>
+        <div className='header-actions'>
           <Button label={this.state.editMode ? 'Switch to View mode' : 'Switch to Edit mode'} onClick={() => this.switchLayout()} />
           {this.state.editLayout && !this.defaultLayout(this.state.editMode).equals(this.state.layout) && <Button label='Reset layout' onClick={() => this.resetLayout()} />}
-          <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={() => this.setState({editLayout: !this.state.editLayout})} />
+          <Button label={this.state.editLayout ? 'Done changing layout' : 'Change layout'} onClick={() => this.setState({ editLayout: !this.state.editLayout })} />
         </div>
-        <h1 className='App-title'>SongCheat &nbsp; ♬ &nbsp; {this.defaultFilename()}</h1>
+        <h1 className='App-title'><span className='app-name'>SongCheat &nbsp; ♬ &nbsp; </span>{this.defaultFilename()}</h1>
       </header>
 
       {this.state.error ? <div className='edit_error'>{this.state.error}</div> : null}
@@ -384,6 +424,7 @@ class App extends Component {
           <General label='General'
             playing={this.state.playing}
             songcheat={this.state.songcheat}
+            onResetSettings={() => this.resetSettings()}
             ref={c => this.videoPlayer = c ? c.videoPlayer : null} />
           <Chords label='Chords'
             songcheat={this.state.songcheat}
