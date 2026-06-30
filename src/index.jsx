@@ -69,6 +69,11 @@ ReactDOM.render(
       redirect_uri: window.location.origin,
       audience: import.meta.env.VITE_AUTH0_AUDIENCE
     }}
+    // persist the session across full page reloads (bookmarks / F5) and renew
+    // tokens via refresh tokens instead of the third-party-cookie iframe, which
+    // browsers block (Safari ITP, Chrome) on a different domain than Auth0.
+    cacheLocation="localstorage"
+    useRefreshTokens={true}
   >
     <Root />
   </Auth0Provider>,
