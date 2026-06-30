@@ -55,23 +55,28 @@
 
   .signin-button {
     display: inline-flex;
-    vertical-align: bottom;
     align-items: center;
+    gap: 6px;
     cursor: pointer;
+    margin: 0 4px;
+    padding: 5px 14px;
+    background: linear-gradient(135deg, #5b6cf9, #4f9cf9);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.85em;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    transition: filter 0.15s ease, transform 0.15s ease;
 
-    &-text {
-      padding-left: 5px;
+    &:hover {
+      filter: brightness(1.15);
+      transform: translateY(-1px);
     }
-    margin: 0 3px;
-    padding: 5px 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
 
-  .facebook-signin-logo {
-    height: 18px;
-    width: 18px;
-    background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAB0AAAAdCAMAAABhTZc9AAAAM1BMVEU7V53////7/P33+Pvm6vPe4++erM9HYaPs7/bY3uu8xd6uutiXpstfd7BNZ6dGYKM+Wp8D8PpVAAAAS0lEQVQoz2MYIoCfh5OZkZkFuyQvCyMYYJVk52DEI8vGiE+WFSjBzY7LTUxAWT6cLgYbSnVZRiTAJIBPlhWvXi68smz4XTUqS6IsADRcAScdHoCmAAAAAElFTkSuQmCC");
-    background-size: 18px 18px;
+    &:active {
+      filter: brightness(0.95);
+      transform: translateY(0);
+    }
   }
 }
