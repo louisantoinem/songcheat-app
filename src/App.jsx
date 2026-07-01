@@ -85,27 +85,28 @@ class App extends Component {
     return 'SongCheat.App.Layout.' + (editMode ? 'Edit' : 'View')
   }
 
-  defaultSettings() {
+  defaultSettings(isMobile = false) {
     return {
       'Chords.showInline': false,
       'Rhythm.showInline': false,
       'Ascii.split': 0,
       'Ascii.maxConsecutiveSpaces': 1,
       'Ascii.fontSize': 1.0,
-      'Ascii.columnCount': 2,
+      'Ascii.columnCount': isMobile ? 1 : 2,
       'Score.staveMode': '',
       'Score.separateUnits': false,
       'Score.displayedUnits': [],
       'Score.showLyrics': true,
       'Score.showStrokes': false,
       'Score.showAccents': false,
-      'Score.barsPerLine': 4,
+      'Score.barsPerLine': isMobile ? 1 : 4,
       'Score.rendering': 'canvas'
     }
   }
 
   resetSettings() {
-    let settings = Map(this.defaultSettings())
+    const isMobile = window.innerWidth <= 600
+    let settings = Map(this.defaultSettings(isMobile))
 
     // select all units
     if (this.state.songcheat && this.state.songcheat.structure) {
@@ -113,14 +114,8 @@ class App extends Component {
       settings = settings.set('Score.displayedUnits', unitIds)
     }
 
-    // force column count and bars per line to 1 on mobile
-    if (window.innerWidth <= 600) {
-      settings = settings.set('Ascii.columnCount', 1)
-      settings = settings.set('Score.barsPerLine', 1)
-    }
-
     this.setState({ settings })
-    localStorage.removeItem('SongCheat.App.Settings')
+    localStorage.setItem('SongCheat.App.Settings', JSON.stringify(settings))
   }
 
   onDrop(acceptedFiles, rejectedFiles) {
@@ -166,8 +161,8 @@ class App extends Component {
 
     // on mobile, force single-panel layout (only if saved layout has multiple panels) and single-column text and score view
     if (window.innerWidth <= 600) {
-      let settings = this.state.settings.set('Ascii.columnCount', 1)
-      settings = settings.set('Score.barsPerLine', 1)
+      let settings = this.state.settings.set('Ascii.columnCount', this.defaultSettings(true)['Ascii.columnCount'])
+      settings = settings.set('Score.barsPerLine', this.defaultSettings(true)['Score.barsPerLine'])
 
       if (!this.state.layout.root.isLeave() || this.state.layout.root.components.length > 4) {
         localStorage.removeItem(this._key(false))
