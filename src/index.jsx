@@ -21,8 +21,12 @@ function Root () {
 
   const getToken = useCallback(async () => {
     if (!isAuthenticated) return null
-    try { return await getAccessTokenSilently() } catch (e) { console.error(e); return null }
-  }, [isAuthenticated, getAccessTokenSilently])
+    try { return await getAccessTokenSilently() } catch (e) {
+      console.error('Failed to get access token, redirecting to login:', e)
+      loginWithRedirect()
+      return null
+    }
+  }, [isAuthenticated, getAccessTokenSilently, loginWithRedirect])
 
   const api = useMemo(() => createApi(getToken), [getToken])
 
