@@ -85,6 +85,24 @@
       &:hover { background: #1a7fc9; }
     }
 
+    .btn-random {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 14px;
+      background: #8b5cf6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.85em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+
+      &:hover:not(:disabled) { background: #7c3aed; }
+      &:disabled { opacity: 0.4; cursor: not-allowed; }
+    }
+
     .search-input-wrap {
       position: relative;
       display: flex;
@@ -518,7 +536,8 @@
     .filter-bar {
       position: static;
 
-      .btn-create {
+      .btn-create,
+      .btn-random {
         display: none;
       }
     }

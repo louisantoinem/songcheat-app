@@ -179,6 +179,14 @@ export default class Browser extends Component {
     this.setState({diff})
   }
 
+  goRandom (history) {
+    const allItems = []
+    for (const [, category] of this.state.data.dataByCategory) allItems.push(...category.items)
+    if (allItems.length === 0) return
+    const pick = allItems[Math.floor(Math.random() * allItems.length)]
+    history.push('/' + pick._id)
+  }
+
   avatarInitials (artist) {
     if (!artist) return '?'
     return artist.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase()
@@ -262,9 +270,19 @@ export default class Browser extends Component {
 
       <div className='filter-bar'>
         <Route render={({ history }) => (
-          <button className='btn-create' onClick={() => history.push('/new')}>
-            <i className='fa fa-plus' /> Create
-          </button>
+          <>
+            <button className='btn-create' onClick={() => history.push('/new')}>
+              <i className='fa fa-plus' /> Create
+            </button>
+            <button
+              className='btn-random'
+              onClick={() => this.goRandom(history)}
+              disabled={!this.state.data || this.state.data.length === 0}
+              title='Open a random songcheat'
+            >
+              <i className='fa fa-magic' /> Lucky
+            </button>
+          </>
         )} />
 
         <div className='search-input-wrap'>
